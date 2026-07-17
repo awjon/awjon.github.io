@@ -60,6 +60,34 @@ Hero must render its first frame from lightweight layered images/CSS (< 250 KB b
 
 Optional flourish (cheap, high impact): a day/night toggle in the corner that swaps the skyline palette (dusk ↔ night) — reinforces the game aesthetic and invites play.
 
+### 3.1a HD-2D depth of field & lighting (Octopath Traveler look)
+
+This is the signature visual upgrade for the redesign — the "diorama" effect where pixel-art layers read as a real miniature 3D scene. It's a lighting/blur treatment applied on top of the layered art from Section 6, not a separate art style, and it applies to **both** the hero and Story Mode.
+
+**Core technique — tilt-shift depth of field:** keep exactly one layer perfectly sharp (the focal plane — wherever the character/action is), and blur every layer in front of and behind it. The eye reads sharp-middle + blurred-front/back as real depth, even though every layer is flat.
+
+| Layer | Blur | Notes |
+|---|---|---|
+| Sky / far skyline (back) | `blur(4px)` | Slight desaturation (~10%) also sells distance. |
+| Mid buildings / street (focal plane) | `blur(0)` | Always tack-sharp. Character sprite and all UI/dialog text live on or in front of this plane — never blur text. |
+| Foreground overhang (rooftop ledge, railing, foliage framing the top/edges of frame) | `blur(3px)` | Optional per scene; only needed where art has a near-camera element. |
+
+Implementation differs by layer type:
+- **Hero (CSS/DOM layers):** each parallax layer is a stacked `<div>`/`<img>`; apply `filter: blur(Npx)` per layer in CSS. Promote blurred layers to their own GPU compositing layer (`will-change: filter; transform: translateZ(0)`) so blur doesn't get recomputed on scroll.
+- **Story Mode (Canvas 2D engine):** the existing engine already draws each backdrop layer via `ctx.drawImage` per frame — use the Canvas 2D context's native `ctx.filter = 'blur(4px)'` immediately before drawing the far layer, then `ctx.filter = 'none'` before drawing the mid layer/character, then re-apply for any foreground layer. No extra `<canvas>` elements needed; this is a ~3-line change to `drawBackdrop()`.
+
+**Bloom / glow:** any bright light source in a scene (sunset, window lights, streetlamps, the "EXP" gold accent) gets a soft glow via `filter: drop-shadow(0 0 8px rgba(255,210,120,.55))` (CSS) or a radial-gradient sprite drawn behind it (canvas). Keep it subtle — this is a highlight accent, not a full bloom-pass shader.
+
+**Vignette:** a fixed full-bleed `radial-gradient(circle at 50% 45%, transparent 55%, rgba(5,6,14,.35) 100%)` overlay, `mix-blend-mode: multiply`, ~20% opacity. Frames the scene and hides layer edges/seams.
+
+**Optional polish (only after the above ships and looks right):** slow-drifting dust-mote/firefly particles in the mid-far layer (a handful of small soft-glow dots animating with `translate` + `opacity`) — cheap, and it's the detail that most reads as "premium game" rather than "static background."
+
+**Performance guardrails:**
+- Blur only the far and (if present) foreground layers — never the focal/mid layer, and never blur any layer carrying text or UI.
+- Cap blur radius at ≤4px; wider blurs cost significantly more on mobile GPUs for barely more visual effect.
+- `prefers-reduced-motion` disables the parallax *motion*, not the blur itself (static blur isn't motion) — dust motes should freeze or be removed under reduced motion.
+- QA on a mid-range Android device, not just desktop Chrome — CSS/canvas blur is the single most likely perf regression in this whole redesign.
+
 ### 3.2 "Career at a glance" — the recruiter's 30 seconds
 Reverse-chronological interactive timeline styled as **level-select cards**. One card per role, each with a small pixel emblem, and a thin timeline rail connecting them (EXP-bar styling as a nod to the game):
 
@@ -107,6 +135,7 @@ Keep the existing engine and scenes with these upgrades only:
 4. **Typewriter speed:** click/tap anywhere on the dialog to complete the text instantly (standard JRPG behavior).
 5. **Keep** the chiptune, EXP bar, sprites, flight cards, rain effects — they're good.
 6. **Fix:** remove `user-scalable=no`; add a real `prefers-reduced-motion` path (no typewriter, no parallax rush — fade transitions instead); give the canvas an offscreen text alternative (visually-hidden HTML transcript of all scene text).
+7. **HD-2D depth of field:** every backdrop scene (Hong Kong, Hawaii, Illinois, Seattle, and each career location) gets the same tilt-shift blur/bloom/vignette treatment specified in Section 3.1a — this is what makes Story Mode look like an upgrade rather than a re-skin of the current site. Requires each backdrop to exist as separated depth layers per Section 6, not the current single flattened JPEG per scene.
 
 ---
 
@@ -168,8 +197,17 @@ Keep the existing engine and scenes with these upgrades only:
 | Plane sprite | `spr_plane` | Story Mode + hero ambient flyby |
 | Flight photos (3) | `flightimg1-3` | Story Mode achievement cards |
 
+### Layer format requirements (applies to every scene below and to Section 3.1a's depth-of-field effect)
+Each scene needs 3–4 **separated depth layers**, not one flattened image:
+- **Back layer** (sky/far skyline): full-bleed, opaque, no transparency needed — JPEG/WebP.
+- **Mid/focal layer** (main buildings, street, where the character stands): transparent PNG/WebP cutout so the back layer shows through gaps (sky between buildings, etc.).
+- **Foreground layer** (rooftop ledge, railing, foliage), if present: transparent PNG/WebP, positioned to overlap the top/edges of frame.
+- Each layer wider than the target viewport (extra horizontal bleed) so it has room to travel independently during parallax pan without exposing an edge.
+- This layer separation is what makes the Section 3.1a blur/bloom/vignette treatment possible — a single flattened JPEG (which is what every current backdrop is) can only be blurred as a whole, which kills the depth illusion rather than creating it.
+
 ### New — must be created (AI-generate in the same pixel style as existing backdrops, or commission)
-1. **Hero parallax set (highest priority):** pixel-art Seattle skyline at dusk in 3–4 separable layers — (a) sky + clouds, (b) far skyline with Space Needle silhouette, (c) mid buildings with lit windows, (d) foreground ledge/rooftop where the character stands. Landscape ≥ 1920px wide each, plus a night-palette variant if the day/night toggle ships. *(The existing `seattle` backdrop sets the style reference but is a single flattened image — it cannot be used for parallax.)*
+1. **Hero parallax set (highest priority):** pixel-art Seattle skyline at dusk in 3–4 separable layers per the format above — (a) sky + clouds, (b) far skyline with Space Needle silhouette, (c) mid buildings with lit windows, (d) foreground ledge/rooftop where the character stands. Landscape ≥ 1920px wide each, plus a night-palette variant if the day/night toggle ships. *(The existing `seattle` backdrop sets the style reference but is a single flattened image — it cannot be used for parallax or depth of field as-is.)*
+1a. **Re-layer the existing Story Mode backdrops** (`hk`, `hawaii`, `illinois`, `seattle`, `amazon`, `starbucks`, `msft1`, `msft2`) into the same back/mid/foreground format so Section 4 item 7's HD-2D treatment applies across all of Story Mode, not just the hero. This can reuse the current images as the mid/focal layer and only requires generating new back (sky) and, optionally, foreground layers to match — lower effort than building each scene from scratch.
 2. **Idle-pose sprite frames (2)** for the adult character (standing, slight breathing bob) — current sprites are walk-cycle only.
 3. **Four pixel company emblems** for timeline cards (Amazon / Microsoft / Starbucks / MSRC-shield motifs). ⚠️ Do **not** reproduce real trademarked logos — use abstract pixel monograms/icons + text labels.
 4. **OG share image**, 1200×630: hero skyline + "JONATHAN WONG — Program Manager" in the pixel display type.
