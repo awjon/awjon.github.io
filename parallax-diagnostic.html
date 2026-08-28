@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parallax diagnostic</title>
+<meta name="color-scheme" content="only light">
+<script>document.documentElement.className += " js";</script>
+<style>
+  @property --p { syntax: "<number>"; inherits: true; initial-value: 0; }
+  @keyframes prog { from { --p: 0 } to { --p: 1 } }
+  @supports (animation-timeline: scroll()) {
+    .stage { animation: prog auto linear both; animation-timeline: scroll(root block); animation-range: 0 100svh; }
+  }
+  :root { color-scheme: only light; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#f2f6f8; color:#0d2630;
+         font:16px/1.5 "Helvetica Neue",Helvetica,Arial,system-ui,sans-serif; }
+  .wrap { height: 200svh; position: relative; }
+  .stage { position: sticky; top:0; height:100svh; overflow:hidden; padding:16px; }
+  h1 { font-size:20px; margin:0 0 12px; }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  td { padding:5px 6px; border-bottom:1px solid #d4e0e6; vertical-align:top; }
+  td:first-child { color:#4a6672; width:52%; }
+  b { font-weight:700; }
+  .ok { color:#16663f; } .bad { color:#a3282a; }
+  /* Boxes driven purely by --p: if these separate as you scroll, CSS parallax works. */
+  .bars { position:relative; height:120px; margin-top:14px; border:1px solid #d4e0e6; border-radius:6px; overflow:hidden; background:#fff; }
+  .bar { position:absolute; left:0; height:28px; border-radius:4px; color:#fff; font-size:12px;
+         padding:5px 8px; white-space:nowrap; }
+  .b1 { top:6px;  background:#2b6d86; transform: translateX(calc(var(--p) * 10px)); }
+  .b2 { top:38px; background:#3f8f6a; transform: translateX(calc(var(--p) * 90px)); }
+  .b3 { top:70px; background:#a8632a; transform: translateX(calc(var(--p) * 190px)); }
+  .nojs { display:block; background:#a3282a; color:#fff; padding:10px; border-radius:6px; margin-bottom:12px; }
+  .js .nojs { display:none; }
+  .spacer { height:100svh; }
+</style>
+</head>
+<body>
+<div class="wrap"><div class="stage">
+  <h1>Parallax diagnostic</h1>
+  <p class="nojs"><b>JavaScript is NOT running</b> on this page.</p>
+  <table>
+    <tr><td>JavaScript running</td><td id="js"><b class="bad">no</b></td></tr>
+    <tr><td>CSS scroll-driven animation</td><td id="sda">—</td></tr>
+    <tr><td><code>position:sticky</code></td><td id="sticky">—</td></tr>
+    <tr><td><code>svh</code> units</td><td id="svh">—</td></tr>
+    <tr><td><code>@property</code></td><td id="prop">—</td></tr>
+    <tr><td>scroll events seen</td><td id="ev">—</td></tr>
+    <tr><td>--p (live)</td><td id="p">—</td></tr>
+    <tr><td>stage pinned (top should stay 0)</td><td id="pin">—</td></tr>
+    <tr><td>viewport / DPR</td><td id="vp">—</td></tr>
+  </table>
+  <div class="bars">
+    <div class="bar b1">back — slow</div>
+    <div class="bar b2">mid — medium</div>
+    <div class="bar b3">front — fast</div>
+  </div>
+  <p style="font-size:13px;color:#4a6672;margin-top:10px">
+    Scroll down. If the three bars <b>fan out at different speeds</b>, CSS parallax
+    works on this device and the hero should too.
+  </p>
+</div></div>
+<div class="spacer"></div>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var stage = document.querySelector('.stage'), evs = 0;
+  var yes = '<b class="ok">yes</b>', no = '<b class="bad">no</b>';
+  $('js').innerHTML = yes;
+  var sda = window.CSS && CSS.supports && CSS.supports('animation-timeline','scroll()');
+  $('sda').innerHTML  = sda ? yes : no;
+  $('sticky').innerHTML = (CSS.supports('position','sticky') ? yes : no);
+  $('svh').innerHTML  = (CSS.supports('height','100svh') ? yes : no);
+  $('prop').innerHTML = (window.CSS && CSS.registerProperty ? yes : no);
+  $('vp').textContent = innerWidth + '×' + innerHeight + '  dpr ' + (devicePixelRatio||1);
+  function tick(){
+    $('ev').textContent = evs;
+    $('p').textContent  = getComputedStyle(stage).getPropertyValue('--p').trim() || '(unset)';
+    $('pin').textContent = Math.round(stage.getBoundingClientRect().top);
+  }
+  addEventListener('scroll', function(){ evs++; requestAnimationFrame(tick); }, {passive:true});
+  tick(); setInterval(tick, 400);
+})();
+</script>
+</body>
+</html>

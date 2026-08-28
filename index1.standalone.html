@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jonathan Wong</title>
-<!-- Self-contained build: all three layers are embedded, so this single file
-     renders anywhere, including opened straight from a phone's Downloads,
-     where relative paths cannot resolve. Generated from index1.html. -->
+<!-- Self-contained build: layers embedded, no script required for either the
+     art or the parallax. Renders anywhere, including opened straight from a
+     phone's Downloads. Generated from index1.html. -->
 <meta name="description" content="Jonathan Wong">
 
 <!-- Theme-agnostic: the page renders identically under light and dark system settings.
@@ -55,6 +55,27 @@ body {
   font-family: "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* The scroll driver. Where the browser supports scroll-driven animations the
+   progress value comes straight from the scroll position, so the parallax
+   works with no script at all — including in contexts that will not run one,
+   such as a file opened from a phone's Downloads. The script below is only a
+   fallback for browsers without it. */
+@keyframes hero-progress {
+  from { --p: 0; }
+  to   { --p: 1; }
+}
+
+@supports (animation-timeline: scroll()) {
+  .hero__stage {
+    animation-name: hero-progress;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 100svh;   /* the distance the stage stays pinned */
+  }
 }
 
 /* -------------------------------------------------------------------------
@@ -132,13 +153,16 @@ body {
   background-repeat: no-repeat;
   transform-origin: 50% 50%;
   will-change: transform;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 900ms ease;
 }
 
-/* Each plane fades in over the base sky when its own art arrives. A layer that
-   fails to load stays at opacity 0 rather than exposing its backing colour. */
-.plane.is-loaded { opacity: 1; }
+/* Planes are visible by default, so the hero renders with no script at all.
+   Only when a script is running do we hide them and fade each in as its own
+   art arrives — which also means a layer that fails to load stays hidden
+   rather than exposing its backing colour. */
+.js .plane { opacity: 0; }
+.js .plane.is-loaded { opacity: 1; }
 
 .plane--back {
   z-index: 1;
@@ -314,6 +338,13 @@ body {
 
 <script>
 (function () {
+  // CSS drives the parallax wherever scroll-driven animations exist; running
+  // this as well would fight it, since an inline value would override the
+  // animated one.
+  if (window.CSS && CSS.supports && CSS.supports('animation-timeline', 'scroll()')) {
+    return;
+  }
+
   var root  = document.documentElement;
   var hero  = document.getElementById('hero');
   var stage = document.getElementById('stage');
@@ -347,11 +378,6 @@ body {
     visualViewport.addEventListener('resize', function () { measure(); onScroll(); });
   }
 
-  // The art is embedded in this file, so there is nothing to wait on.
-  requestAnimationFrame(function () {
-    var planes = document.querySelectorAll('.plane');
-    for (var i = 0; i < planes.length; i++) planes[i].classList.add('is-loaded');
-  });
 })();
 </script>
 </body>
