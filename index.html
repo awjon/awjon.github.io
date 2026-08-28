@@ -124,12 +124,12 @@ body {
      Everything about where it sits is expressed against that height below,
      which keeps it correct at any viewport shape. */
   --front-w: 100vw;
-  --front-h: calc(var(--front-w) / 1.5);
+  --front-h: calc(var(--front-w) / 1.6);
 
   /* Where the family lands on load. The tallest head sits ~4.5% down the
      PNG, so subtracting that fraction of the image height from 90vh puts
      the top of the people exactly at the bottom 10% of the viewport. */
-  --front-top: calc(90vh - 0.045 * var(--front-h));
+  --front-top: calc(90vh - 0.5 * var(--front-h));
 
   /* ---- Motion -------------------------------------------------------
      Travel over the full scroll of the hero. The camera reads as lifting:
@@ -137,14 +137,14 @@ body {
      rise slightly. The difference between the planes is the parallax.
      -------------------------------------------------------------------- */
   --dy-back:   -4vh;   --dz-back:  0.05;
-  --dy-mid:   -11vh;   --dz-mid:   0.03;
+  --dy-mid:   -18vh;   --dz-mid:   0.03;
   --dy-name:  -22vh;
   /* The foreground is the fastest plane, as in the reference: it travels a
      full image-height over the pin range, so the picture is read from the
      heads down to the grass as you scroll and the family rushes up past
      the camera. Stated in terms of --front-h rather than vh so the whole
      photo passes through frame on any screen shape. */
-  --dy-front: calc(-1 * var(--front-h));   --dz-front: 0.06;
+  --dy-front: calc(-0.8 * var(--front-h));   --dz-front: 0.06;
 }
 
 .hero__stage {
