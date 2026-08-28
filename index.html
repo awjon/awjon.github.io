@@ -530,6 +530,176 @@ body {
   opacity: 0.85;
 }
 
+/* -------------------------------------------------------------------------
+   Tiles that open. Every layer is inset:0 — the full stage — and they are
+   stacked, so without this the topmost layer swallows every click and no tile
+   is ever reachable. Only the tiles themselves take pointer events.
+   ------------------------------------------------------------------------- */
+.zoom__layer { pointer-events: none; }
+
+button.zoom__tile {
+  pointer-events: auto;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: filter 200ms ease;
+}
+
+button.zoom__tile:hover { filter: brightness(1.14); }
+
+button.zoom__tile:focus-visible {
+  outline: 2px solid #e7edf0;
+  outline-offset: 3px;
+}
+
+/* The affordance. Nothing else on the page says these are openable, and a
+   caption alone reads as a label rather than a control. */
+.zoom__more {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.34);
+  color: #fff;
+  opacity: 0.6;
+  transition: opacity 200ms ease, background-color 200ms ease;
+}
+
+button.zoom__tile:hover .zoom__more,
+button.zoom__tile:focus-visible .zoom__more {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* The captions fade as the tiles fly; the affordance goes with them, so a
+   tile mid-flight does not advertise a control the reader cannot aim at. */
+.zoom__more { opacity: calc(0.6 - clamp(0, calc(var(--z) / 0.3), 1) * 0.6); }
+
+/* -------------------------------------------------------------------------
+   Role detail. Hidden until asked for, which is what keeps the résumé off the
+   page as primary content while still putting it one tap away.
+   ------------------------------------------------------------------------- */
+.sheet {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  overflow: visible;
+  place-items: center;
+}
+
+/* `display: grid` above would override the UA's closed-state display:none. */
+.sheet[open] { display: grid; }
+.sheet:not([open]) { display: none; }
+
+.sheet::backdrop {
+  background: rgba(4, 6, 7, 0.74);
+  backdrop-filter: blur(3px);
+}
+
+.sheet__panel {
+  width: min(560px, calc(100vw - 32px));
+  max-height: 82vh;
+  overflow-y: auto;
+  background: #101418;
+  border: 1px solid rgba(231, 237, 240, 0.12);
+  border-radius: 3px;
+  padding: 26px 24px 22px;
+}
+
+.sheet__meta {
+  margin: 0 0 7px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(231, 237, 240, 0.45);
+}
+
+.sheet__panel h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+  font-weight: 650;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.sheet__panel ul {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.sheet__panel li {
+  position: relative;
+  padding-left: 17px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(231, 237, 240, 0.82);
+}
+
+.sheet__panel li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent, #2f6f8f);
+}
+
+.sheet__close {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 22px 0 0;
+  min-height: 44px;
+  width: 100%;
+  padding: 0 18px;
+  background: transparent;
+  border: 1px solid rgba(231, 237, 240, 0.18);
+  border-radius: 2px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 200ms ease, background-color 200ms ease;
+}
+
+.sheet__close:hover,
+.sheet__close:focus-visible {
+  border-color: rgba(231, 237, 240, 0.4);
+  background: rgba(231, 237, 240, 0.06);
+}
+
+@media (max-width: 560px) {
+  .sheet { place-items: end center; }
+  .sheet__panel {
+    width: 100vw;
+    border-radius: 3px 3px 0 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
+}
+
 .zoom__cap b {
   display: block;
   font-weight: 650;
@@ -780,34 +950,46 @@ body {
       </div>
     </div>
     <div class="zoom__layer">
-      <div class="zoom__tile">
-        <div class="zoom__cap"><b>Microsoft</b><span>Technical Program Manager, Fast Track · 2020–2022</span></div>
-      </div>
+      <button class="zoom__tile" type="button" data-role="fasttrack"
+              aria-haspopup="dialog" aria-label="Microsoft — Technical Program Manager, Fast Track · 2020–2022. Open detail.">
+        <span class="zoom__cap"><b>Microsoft</b><span>Technical Program Manager, Fast Track · 2020–2022</span></span>
+        <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+      </button>
     </div>
     <div class="zoom__layer">
-      <div class="zoom__tile">
-        <div class="zoom__cap"><b>Starbucks</b><span>Technical Product Manager, Retail Platform · 2019–2020</span></div>
-      </div>
+      <button class="zoom__tile" type="button" data-role="starbucks"
+              aria-haspopup="dialog" aria-label="Starbucks — Technical Product Manager, Retail Platform · 2019–2020. Open detail.">
+        <span class="zoom__cap"><b>Starbucks</b><span>Technical Product Manager, Retail Platform · 2019–2020</span></span>
+        <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+      </button>
     </div>
     <div class="zoom__layer">
-      <div class="zoom__tile">
-        <div class="zoom__cap"><b>Microsoft</b><span>Business Analyst, Azure Marketplace · 2017–2018</span></div>
-      </div>
+      <button class="zoom__tile" type="button" data-role="marketplace"
+              aria-haspopup="dialog" aria-label="Microsoft — Business Analyst, Azure Marketplace · 2017–2018. Open detail.">
+        <span class="zoom__cap"><b>Microsoft</b><span>Business Analyst, Azure Marketplace · 2017–2018</span></span>
+        <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+      </button>
     </div>
     <div class="zoom__layer">
-      <div class="zoom__tile">
-        <div class="zoom__cap"><b>Microsoft</b><span>Program Manager, Incentives · 2015–2017</span></div>
-      </div>
+      <button class="zoom__tile" type="button" data-role="incentives"
+              aria-haspopup="dialog" aria-label="Microsoft — Program Manager, Incentives · 2015–2017. Open detail.">
+        <span class="zoom__cap"><b>Microsoft</b><span>Program Manager, Incentives · 2015–2017</span></span>
+        <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+      </button>
     </div>
     <div class="zoom__layer">
-      <div class="zoom__tile">
-        <div class="zoom__cap"><b>Code Fellows</b><span>Web Development</span></div>
-      </div>
+      <button class="zoom__tile" type="button" data-role="codefellows"
+              aria-haspopup="dialog" aria-label="Code Fellows — Web Development. Open detail.">
+        <span class="zoom__cap"><b>Code Fellows</b><span>Web Development</span></span>
+        <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+      </button>
     </div>
     <div class="zoom__layer">
-      <div class="zoom__tile">
-        <div class="zoom__cap"><b>University of Illinois</b><span>BS Management · BS Marketing</span></div>
-      </div>
+      <button class="zoom__tile" type="button" data-role="illinois"
+              aria-haspopup="dialog" aria-label="University of Illinois — BS Management · BS Marketing. Open detail.">
+        <span class="zoom__cap"><b>University of Illinois</b><span>BS Management · BS Marketing</span></span>
+        <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+      </button>
     </div>
     <div class="zoom__focus">
       <b>Microsoft</b>
@@ -830,6 +1012,95 @@ body {
   </div>
   <div class="ending__meta">Seattle, WA</div>
 </footer>
+
+<!-- Role detail, one dialog per openable tile. Modal <dialog> gives the
+     Escape key, the focus trap and focus return to the tile for free. -->
+<dialog class="sheet" id="role-fasttrack" aria-labelledby="role-fasttrack-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">2020–2022 · via Avenue In Consulting</p>
+    <h2 id="role-fasttrack-title">Microsoft — Technical Program Manager, Fast Track</h2>
+    <ul>
+        <li>Led DevOps and automation programs driving growth for a $61M incentive business.</li>
+        <li>Increased processing capacity 30% by launching 9 Power Apps and 30+ automation products across 3 portals.</li>
+        <li>Reduced lead times 53% with iterative releases and continuous discovery with leadership.</li>
+        <li>Integrated 19 cross-functional teams; architected 3 Azure Data Factory pipelines and 12 APIs.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+<dialog class="sheet" id="role-starbucks" aria-labelledby="role-starbucks-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">2019–2020 · via Collabera</p>
+    <h2 id="role-starbucks-title">Starbucks — Technical Product Manager, Retail Platform Engineering</h2>
+    <ul>
+        <li>Launched the UberEats program to 5,496 stores across North America, adding $4.1M in revenue.</li>
+        <li>Reduced delivery support queues 95% by building the knowledge base and training.</li>
+        <li>Cut critical Azure service issue resolution time 15% across two product lines.</li>
+        <li>Reopened 500+ stores affected by the pandemic, standing up store delivery systems as BCDR.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+<dialog class="sheet" id="role-marketplace" aria-labelledby="role-marketplace-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">2017–2018 · via Unify Consulting</p>
+    <h2 id="role-marketplace-title">Microsoft — Business Analyst, Azure Marketplace</h2>
+    <ul>
+        <li>Ran the DevOps support program for all Azure Marketplace cloud products and apps.</li>
+        <li>Reduced time to resolution 60% through root-cause analysis, documentation and lean implementation.</li>
+        <li>Supported 2,000+ Azure publishers and their customer experience end to end.</li>
+        <li>Built Power BI and SQL Server reporting for 3 teams; drove data governance and KPIs.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+<dialog class="sheet" id="role-incentives" aria-labelledby="role-incentives-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">2015–2017 · via Tata Consultancy Services</p>
+    <h2 id="role-incentives-title">Microsoft — Program Manager, Incentives</h2>
+    <ul>
+        <li>Validated co-op marketing initiatives across the global Microsoft Partner Network.</li>
+        <li>Led a team of 6 managers and 16 processors across Windows, Xbox, MSN and Bing.</li>
+        <li>Reduced SLA 70%, setting new benchmarks, and streamlined year-over-year volume 20%.</li>
+        <li>Owned 2 core incentive programs, communicating with 60+ partners.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+<dialog class="sheet" id="role-codefellows" aria-labelledby="role-codefellows-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">Certificate</p>
+    <h2 id="role-codefellows-title">Code Fellows — Web Development</h2>
+    <ul>
+        <li>Object-oriented programming, MVC and responsive design.</li>
+        <li>HTML, CSS, JavaScript, jQuery and React; Git and Heroku.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+<dialog class="sheet" id="role-illinois" aria-labelledby="role-illinois-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">Education</p>
+    <h2 id="role-illinois-title">University of Illinois</h2>
+    <ul>
+        <li>Bachelor of Science in Management; Bachelor of Science in Marketing.</li>
+        <li>Also certified: Microsoft Azure Fundamentals, and Salesforce Trailhead — Salesforce Developer.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
 
 <script>
 (function () {
@@ -888,6 +1159,52 @@ body {
     visualViewport.addEventListener('resize', function () { measure(); onScroll(); });
   }
 
+})();
+</script>
+
+<script>
+(function () {
+  // Deliberately its own block: the parallax script above stands down as soon
+  // as the browser can drive the animation from CSS, which is every modern
+  // one — anything wired inside it would never run here.
+  var dialogs = document.querySelectorAll('dialog.sheet');
+  if (!dialogs.length || typeof dialogs[0].showModal !== 'function') return;
+
+  var root = document.documentElement;
+
+  // A modal <dialog> does not stop the page behind it from scrolling, and this
+  // page's scroll IS the animation — the zoom would run on under the backdrop.
+  // Locking swaps a scrollbar for nothing, so pad by exactly its width to keep
+  // the layout still.
+  function lock() {
+    var gutter = window.innerWidth - root.clientWidth;
+    root.style.overflow = 'hidden';
+    if (gutter > 0) root.style.paddingRight = gutter + 'px';
+  }
+
+  function unlock() {
+    root.style.overflow = '';
+    root.style.paddingRight = '';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-role]'), function (btn) {
+    var dlg = document.getElementById('role-' + btn.getAttribute('data-role'));
+    if (!dlg) return;
+
+    btn.addEventListener('click', function () {
+      lock();
+      dlg.showModal();
+    });
+
+    // The dialog fills the viewport and centres its panel, so anything that
+    // lands on the dialog itself is a click outside the panel.
+    dlg.addEventListener('click', function (e) {
+      if (e.target === dlg) dlg.close();
+    });
+
+    // Covers every close: the button, Escape, and the backdrop.
+    dlg.addEventListener('close', unlock);
+  });
 })();
 </script>
 </body>
