@@ -519,20 +519,12 @@ body {
   opacity: clamp(0, calc((var(--z) - 0.55) / 0.4), 1);
 }
 
-.zoom__focus b {
-  display: block;
-  font-size: clamp(1.6rem, 4.4vw, 3.2rem);
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-
 .zoom__focus span {
   display: block;
-  margin-top: 0.5rem;
-  font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+  font-size: clamp(0.9rem, 1.6vw, 1.25rem);
   font-weight: 500;
-  opacity: 0.85;
+  letter-spacing: 0.01em;
+  opacity: 0.9;
 }
 
 /* -------------------------------------------------------------------------
@@ -734,66 +726,63 @@ button.zoom__tile:focus-visible .zoom__more {
   --c: #2f6f8f;
 }
 
-/* The six roles: two columns of three, standing vertically either side of the
-   centre. Portrait-shaped tiles suit the four-line caption and leave the
-   middle of the frame to the square. A tile leaves frame once its scaled
-   offset clears the edge, and its own half-width works against that offset —
-   these are held close enough in, and scaled gently enough, to stay through
-   the first half of the zoom rather than clearing at once. */
+/* The six roles, laid out as a ring that encloses the square rather than two
+   plain columns. The most recent role runs as a wide bar across the top,
+   stopping just short of the tile beside it, and Education mirrors it along
+   the bottom; vertical tiles flank the square between them. The offsets are
+   the tile's centre relative to the stage's, so a wide bar sits off-centre.
+
+   A tile leaves frame once its scaled offset clears the edge, and its own
+   half-size works against that offset. The two bars are wider than their own
+   offset, so they never clear sideways — they leave upward and downward
+   instead, which is what the vertical offsets are sized for. */
 .zoom__layer:nth-child(2) { --s: 5.0; }
 .zoom__layer:nth-child(2) .zoom__tile {
-  --tw: 15vw; --th: 27vh; --tx: -26vw; --ty: -29vh; --c: #7a5d3f;
+  --tw: 48vw; --th: 25vh; --tx: -10vw; --ty: -30vh; --c: #7a5d3f;
 }
 
-.zoom__layer:nth-child(3) { --s: 5.3; }
+.zoom__layer:nth-child(3) { --s: 5.4; }
 .zoom__layer:nth-child(3) .zoom__tile {
-  --tw: 15vw; --th: 27vh; --tx: 26vw; --ty: -29vh; --c: #3f6b4f;
+  --tw: 16vw; --th: 25vh; --tx: 26vw; --ty: -30vh; --c: #3f6b4f;
 }
 
 .zoom__layer:nth-child(4) { --s: 5.6; }
 .zoom__layer:nth-child(4) .zoom__tile {
-  --tw: 15vw; --th: 27vh; --tx: -26vw; --ty: 0vh; --c: #6b3f52;
+  --tw: 18vw; --th: 30vh; --tx: -25vw; --ty: 0vh; --c: #6b3f52;
 }
 
 .zoom__layer:nth-child(5) { --s: 5.9; }
 .zoom__layer:nth-child(5) .zoom__tile {
-  --tw: 15vw; --th: 27vh; --tx: 26vw; --ty: 0vh; --c: #4a4f7a;
+  --tw: 18vw; --th: 30vh; --tx: 25vw; --ty: 0vh; --c: #4a4f7a;
 }
 
 .zoom__layer:nth-child(6) { --s: 6.2; }
 .zoom__layer:nth-child(6) .zoom__tile {
-  --tw: 15vw; --th: 27vh; --tx: -26vw; --ty: 29vh; --c: #7a6a3f;
+  --tw: 16vw; --th: 25vh; --tx: -26vw; --ty: 30vh; --c: #7a6a3f;
 }
 
-.zoom__layer:nth-child(7) { --s: 6.5; }
+.zoom__layer:nth-child(7) { --s: 5.2; }
 .zoom__layer:nth-child(7) .zoom__tile {
-  --tw: 15vw; --th: 27vh; --tx: 26vw; --ty: 29vh; --c: #3f5f6b;
+  --tw: 48vw; --th: 25vh; --tx: 10vw; --ty: 30vh; --c: #3f5f6b;
 }
 
 /* Portrait. --vmax flips from the width to the height here, so at 20vmax the
    centre square would be ~43vw wide on a phone and there would be no room
-   beside it. It shrinks to 14vmax so two columns of tiles can stand either
-   side, and its scale rises to match: the square still has to reach 100vmax
-   to cover the screen, so 14 x 7.25 replaces 20 x 5.06. */
+   around it. It drops to 14vmax with the scale raised to 7.25, since it still
+   has to reach 100vmax to cover the screen — 14 x 7.25 replaces 20 x 5.06.
+   The same ring, re-proportioned: a phone has height to spare and almost no
+   width, so the bars run nearly edge to edge and the flanking tiles are what
+   gets narrow. */
 @media (max-aspect-ratio: 1/1) {
   .zoom__layer--centre { --s: 7.25; }
   .zoom__layer--centre .zoom__tile { --tw: 14vmax; --th: 14vmax; }
 
-  .zoom__layer:nth-child(2) .zoom__tile,
-  .zoom__layer:nth-child(3) .zoom__tile,
-  .zoom__layer:nth-child(4) .zoom__tile,
-  .zoom__layer:nth-child(5) .zoom__tile,
-  .zoom__layer:nth-child(6) .zoom__tile,
-  .zoom__layer:nth-child(7) .zoom__tile {
-    --tw: 30vw; --th: 22vh;
-  }
-
-  .zoom__layer:nth-child(2) .zoom__tile { --tx: -32vw; --ty: -25vh; }
-  .zoom__layer:nth-child(3) .zoom__tile { --tx:  32vw; --ty: -25vh; }
-  .zoom__layer:nth-child(4) .zoom__tile { --tx: -32vw; --ty:   0vh; }
-  .zoom__layer:nth-child(5) .zoom__tile { --tx:  32vw; --ty:   0vh; }
-  .zoom__layer:nth-child(6) .zoom__tile { --tx: -32vw; --ty:  25vh; }
-  .zoom__layer:nth-child(7) .zoom__tile { --tx:  32vw; --ty:  25vh; }
+  .zoom__layer:nth-child(2) .zoom__tile { --tw: 60vw; --th: 19vh; --tx: -14vw; --ty: -26vh; }
+  .zoom__layer:nth-child(3) .zoom__tile { --tw: 24vw; --th: 19vh; --tx: 32vw; --ty: -26vh; }
+  .zoom__layer:nth-child(4) .zoom__tile { --tw: 27vw; --th: 21vh; --tx: -30.5vw; --ty: 0vh; }
+  .zoom__layer:nth-child(5) .zoom__tile { --tw: 27vw; --th: 21vh; --tx: 30.5vw; --ty: 0vh; }
+  .zoom__layer:nth-child(6) .zoom__tile { --tw: 24vw; --th: 19vh; --tx: -32vw; --ty: 26vh; }
+  .zoom__layer:nth-child(7) .zoom__tile { --tw: 60vw; --th: 19vh; --tx: 14vw; --ty: 26vh; }
 
   .zoom__cap { font-size: 0.52rem; padding: 0.5em 0.55em; }
 }
@@ -951,9 +940,8 @@ button.zoom__tile:focus-visible .zoom__more {
 <div class="zoom" id="zoom">
   <div class="zoom__stage">
     <div class="zoom__layer zoom__layer--centre">
-      <div class="zoom__tile">
-        <div class="zoom__cap"><b>Skills</b></div>
-      </div>
+      <!-- No caption: the image or video that goes here carries the word. -->
+      <div class="zoom__tile"></div>
     </div>
     <div class="zoom__layer">
       <button class="zoom__tile" type="button" data-role="msrc"
@@ -1017,17 +1005,17 @@ button.zoom__tile:focus-visible .zoom__more {
     </div>
     <div class="zoom__layer">
       <button class="zoom__tile" type="button" data-role="illinois"
-              aria-haspopup="dialog" aria-label="University of Illinois, Bachelor of Science, Management · Marketing. Open detail.">
+              aria-haspopup="dialog" aria-label="Education and certification. University of Illinois, BS Management and BS Marketing. Open detail.">
         <span class="zoom__cap">
-          <b>University of Illinois</b>
-          <span class="role">Bachelor of Science</span>
-          <span class="biz">Management · Marketing</span>
+          <b>Education / Certification</b>
+          <span class="role">University of Illinois</span>
+          <span class="biz">BS Management · BS Marketing</span>
+          <span class="yr">Azure Fundamentals · Salesforce</span>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
     </div>
     <div class="zoom__focus">
-      <b>Skills</b>
       <span>Cloud infrastructure · Program strategy · Automation · Data &amp; risk</span>
     </div>
   </div>
@@ -1112,8 +1100,8 @@ button.zoom__tile:focus-visible .zoom__more {
 </dialog>
 <dialog class="sheet" id="role-illinois" aria-labelledby="role-illinois-title">
   <div class="sheet__panel">
-    <p class="sheet__meta">Education</p>
-    <h2 id="role-illinois-title">University of Illinois</h2>
+    <p class="sheet__meta">University of Illinois</p>
+    <h2 id="role-illinois-title">Education / Certification</h2>
     <ul>
         <li>Bachelor of Science in Management; Bachelor of Science in Marketing.</li>
         <li>Also certified: Microsoft Azure Fundamentals, and Salesforce Trailhead — Salesforce Developer.</li>
