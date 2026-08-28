@@ -601,38 +601,105 @@ body {
 }
 
 /* Portrait. --vmax flips from the width to the height here, so the centre
-   square grows relative to the vw-sized tiles around it and the landscape
-   scatter collapses into a pile. The centre has to stay in vmax — that is
-   what guarantees it covers the screen — so the six around it are re-placed
-   instead: narrower, pushed to the edges, and stacked in three rows clear of
-   the square's top and bottom. */
+   square is inherently about 43vw wide on a phone — it has to be, since it
+   must still reach 100vmax to cover the screen. That leaves too little room
+   beside it to hold a caption, so the six are stacked in rows above and below
+   it rather than flanking it, each wide enough to set the company, role and
+   years without clipping. */
 @media (max-aspect-ratio: 1/1) {
   .zoom__layer:nth-child(2) .zoom__tile {
-    --tw: 40vw; --th: 18vh; --tx: -26vw; --ty: -24vh;
+    --tw: 46vw; --th: 14vh; --tx: -24vw; --ty: -32vh;
   }
   .zoom__layer:nth-child(3) .zoom__tile {
-    --tw: 36vw; --th: 16vh; --tx: 27vw; --ty: -26vh;
+    --tw: 44vw; --th: 14vh; --tx: 25vw; --ty: -32vh;
   }
   .zoom__layer:nth-child(4) .zoom__tile {
-    --tw: 26vw; --th: 22vh; --tx: -35vw; --ty: 0vh;
+    --tw: 44vw; --th: 13vh; --tx: -25vw; --ty: -19vh;
   }
   .zoom__layer:nth-child(5) .zoom__tile {
-    --tw: 26vw; --th: 22vh; --tx: 35vw; --ty: 0vh;
+    --tw: 44vw; --th: 13vh; --tx: 25vw; --ty: -19vh;
   }
   .zoom__layer:nth-child(6) .zoom__tile {
-    --tw: 38vw; --th: 17vh; --tx: -26vw; --ty: 25vh;
+    --tw: 46vw; --th: 14vh; --tx: -24vw; --ty: 23vh;
   }
   .zoom__layer:nth-child(7) .zoom__tile {
-    --tw: 34vw; --th: 15vh; --tx: 27vw; --ty: 27vh;
+    --tw: 44vw; --th: 14vh; --tx: 25vw; --ty: 23vh;
   }
-  .zoom__cap { font-size: 0.5rem; }
+  .zoom__cap { font-size: 0.55rem; padding: 0.45em 0.55em; }
 }
 
-/* Room to breathe after the zoom lands. */
-.after {
-  height: 60vh;
-  height: 60svh;
+/* -------------------------------------------------------------------------
+   The close. Deliberately small and last: the career detail belongs on
+   LinkedIn and in the résumé, so this page's job is to be the impression and
+   then hand the reader off. Two links, no metrics, no restated CV.
+   ------------------------------------------------------------------------- */
+.ending {
+  min-height: 60vh;
+  min-height: 60svh;
   background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 14vh 7vw;
+  text-align: center;
+}
+
+.ending p {
+  margin: 0;
+  max-width: 26ch;
+  font-size: clamp(1.05rem, 2.1vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: rgba(231, 237, 240, 0.72);
+  text-wrap: balance;
+}
+
+.ending__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* 48px tall so both are comfortable thumb targets on a phone. */
+.ending__links a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid rgba(231, 237, 240, 0.18);
+  border-radius: 2px;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: border-color 220ms ease, background-color 220ms ease;
+}
+
+.ending__links a:hover,
+.ending__links a:focus-visible {
+  border-color: rgba(231, 237, 240, 0.4);
+  background: rgba(231, 237, 240, 0.06);
+}
+
+.ending__links svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.ending__meta {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(231, 237, 240, 0.32);
 }
 
 /* -------------------------------------------------------------------------
@@ -703,61 +770,74 @@ body {
 </div>
 
 <section class="intro">
-  <p>12+ years turning ambiguous problems into time tested systems at
-     <strong>Microsoft</strong>, <strong>Amazon</strong>, and
-     <strong>Starbucks</strong>.</p>
+  <p>15+ years turning ambiguous problems into time tested systems at
+     <strong>Microsoft</strong> and <strong>Starbucks</strong>.</p>
 </section>
 
 <!-- Zoom parallax. The first layer is the centre tile — the most recent
-     role — and is the one that grows to fill the screen. The rest are
-     placeholder colours and captions to be replaced with real roles. -->
+     role — and is the one that grows to fill the screen. Captions carry the
+     company, the role and the years and nothing else: the detail lives on
+     LinkedIn, and this section is meant to be looked at, not read. -->
 <div class="zoom" id="zoom">
   <div class="zoom__stage">
     <div class="zoom__layer zoom__layer--centre">
       <div class="zoom__tile">
         <div class="zoom__cap">
-          <b>Microsoft</b><span>Program Manager, Cybersecurity · Present</span>
+          <b>Microsoft</b><span>Technical Program Manager, Security Response Center · 2022–2025</span>
         </div>
       </div>
     </div>
     <div class="zoom__layer">
       <div class="zoom__tile">
-        <div class="zoom__cap"><b>Microsoft</b><span>Azure</span></div>
+        <div class="zoom__cap"><b>Microsoft</b><span>Technical Program Manager, Fast Track · 2020–2022</span></div>
       </div>
     </div>
     <div class="zoom__layer">
       <div class="zoom__tile">
-        <div class="zoom__cap"><b>Amazon</b><span>Program Manager</span></div>
+        <div class="zoom__cap"><b>Starbucks</b><span>Technical Product Manager, Retail Platform · 2019–2020</span></div>
       </div>
     </div>
     <div class="zoom__layer">
       <div class="zoom__tile">
-        <div class="zoom__cap"><b>Starbucks</b><span>Retail Technology</span></div>
+        <div class="zoom__cap"><b>Microsoft</b><span>Business Analyst, Azure Marketplace · 2017–2018</span></div>
       </div>
     </div>
     <div class="zoom__layer">
       <div class="zoom__tile">
-        <div class="zoom__cap"><b>Earlier role</b><span>Company · Years</span></div>
+        <div class="zoom__cap"><b>Microsoft</b><span>Program Manager, Incentives · 2015–2017</span></div>
       </div>
     </div>
     <div class="zoom__layer">
       <div class="zoom__tile">
-        <div class="zoom__cap"><b>Earlier role</b><span>Company · Years</span></div>
+        <div class="zoom__cap"><b>Code Fellows</b><span>Web Development</span></div>
       </div>
     </div>
     <div class="zoom__layer">
       <div class="zoom__tile">
-        <div class="zoom__cap"><b>Earlier role</b><span>Company · Years</span></div>
+        <div class="zoom__cap"><b>University of Illinois</b><span>BS Management · BS Marketing</span></div>
       </div>
     </div>
     <div class="zoom__focus">
       <b>Microsoft</b>
-      <span>Program Manager, Cybersecurity · Present</span>
+      <span>Technical Program Manager · Security Response Center</span>
     </div>
   </div>
 </div>
 
-<div class="after"></div>
+<footer class="ending">
+  <p>The full history, and everything it took, lives on LinkedIn.</p>
+  <div class="ending__links">
+    <a href="https://www.linkedin.com/in/jonkwong" rel="me noopener" target="_blank">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle><path d="M10 21V9m0 5a5 5 0 0 1 10 0v7"></path></svg>
+      LinkedIn
+    </a>
+    <a href="assets/Jonathan-Wong-Resume.pdf" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M9 15h6"></path></svg>
+      Résumé
+    </a>
+  </div>
+  <div class="ending__meta">Seattle, WA</div>
+</footer>
 
 <script>
 (function () {
