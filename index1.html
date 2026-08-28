@@ -12,9 +12,9 @@
 <meta name="color-scheme" content="only light">
 <meta name="theme-color" content="#f2f6f8">
 
-<link rel="preload" as="image" href="assets/backlayer.png">
-<link rel="preload" as="image" href="assets/midlayer.png">
-<link rel="preload" as="image" href="assets/frontlayer.png">
+<link rel="preload" as="image" href="assets/backlayer.webp">
+<link rel="preload" as="image" href="assets/midlayer.webp">
+<link rel="preload" as="image" href="assets/frontlayer.webp">
 
 <style>
 /* =========================================================================
@@ -136,13 +136,14 @@ body {
   transition: opacity 900ms ease;
 }
 
-/* Fade the photography in once it has decoded, over the base sky. */
-.art-ready .plane { opacity: 1; }
+/* Each plane fades in over the base sky when its own art arrives. A layer that
+   fails to load stays at opacity 0 rather than exposing its backing colour. */
+.plane.is-loaded { opacity: 1; }
 
 .plane--back {
   z-index: 1;
   top: var(--back-top);
-  background-image: url("assets/backlayer.png");
+  background-image: url("assets/backlayer.webp");
   background-size: max(100%, calc(var(--back-h) * 1.5)) auto;
   background-position: var(--back-x) var(--back-y);
   transform: translate3d(0, calc(var(--p) * var(--dy-back)), 0)
@@ -156,7 +157,7 @@ body {
      frame as it travels up and the foreground sinks. A canopy-toned strip pinned
      to the bottom of its box continues it downward so no edge can ever show. */
   background-image:
-    url("assets/midlayer.png"),
+    url("assets/midlayer.webp"),
     linear-gradient(#191c10, #191c10);
   background-size:
     max(100%, calc(var(--mid-h) * 1.5)) auto,
@@ -171,7 +172,7 @@ body {
 .plane--front {
   z-index: 4;
   top: var(--front-top);
-  background-image: url("assets/frontlayer.png");
+  background-image: url("assets/frontlayer.webp");
   background-size: max(100%, calc(var(--front-h) * 1.5)) auto;
   background-position: var(--front-x) var(--front-y);
   transform: translate3d(0, calc(var(--p) * var(--dy-front)), 0)
@@ -346,19 +347,17 @@ body {
     visualViewport.addEventListener('resize', function () { measure(); onScroll(); });
   }
 
-  // Reveal the planes together once all three have decoded, so the hero never
-  // assembles itself one layer at a time in front of the visitor.
-  var reveal = function () { root.classList.add('art-ready'); };
-  var sources = ['assets/backlayer.png', 'assets/midlayer.png', 'assets/frontlayer.png'];
-
-  Promise.all(sources.map(function (src) {
+  // Reveal each plane as its own art arrives. Anything that fails to load is
+  // simply never revealed, so the hero degrades to its sky rather than to a
+  // half-drawn scene.
+  [['.plane--back', 'assets/backlayer.webp'],
+   ['.plane--mid', 'assets/midlayer.webp'],
+   ['.plane--front', 'assets/frontlayer.webp']].forEach(function (pair) {
+    var el = document.querySelector(pair[0]);
     var img = new Image();
-    img.src = src;
-    var done = img.decode ? img.decode() : Promise.resolve();
-    return done['catch'](function () {});
-  })).then(reveal);
-
-  setTimeout(reveal, 6000); // never leave the hero blank if a decode stalls
+    img.onload = function () { el.classList.add('is-loaded'); };
+    img.src = pair[1];
+  });
 })();
 </script>
 </body>
