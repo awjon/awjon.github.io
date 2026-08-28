@@ -317,20 +317,24 @@ body {
     0 18px 44px rgba(10, 45, 60, 0.16);
 }
 
-/* -------------------------------------------------------------------------
-   Fade to the background colour.
-   One sheet of --bg over the whole stage, above every plane, driven by the
-   same progress value. By the end of the hero the scene has fully resolved
-   into the page background.
-   ------------------------------------------------------------------------- */
-.hero__veil {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-  background: var(--bg);
-  opacity: clamp(0, calc((var(--p) - 0.34) / 0.60), 1);
+/* The role line. Sits on the same bright sky as the name, so it takes the
+   same dark ink, one step lighter and much smaller to stay subordinate. */
+.hero__role {
+  margin: 1.1rem 0 0;
+  font-size: clamp(0.82rem, 1.55vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  color: var(--name-ink);
+  opacity: 0.78;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
 }
+
+/* No veil. The hero used to wash a sheet of --bg over the whole stage to
+   resolve the scene into the page. It no longer needs to: the front layer's
+   own opaque bottom rises with it, so the scene reaches black as ground
+   rather than as a fade, and the photographs stay clear the whole way down.
+   ------------------------------------------------------------------------- */
 
 /* Scroll affordance. Hero furniture — the effect needs a scroll to read. */
 .hero__cue {
@@ -347,12 +351,301 @@ body {
   opacity: calc(1 - clamp(0, calc(var(--p) / 0.12), 1));
 }
 
+/* =========================================================================
+   Below the hero — the value proposition, then the zoom parallax.
+   ========================================================================= */
+
+/* The one-liner that opens the section. */
+.intro {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  min-height: 60svh;
+  padding: 14vh 7vw;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* Radial spotlight behind the line, as in the reference. Barely there —
+   just enough to lift the type off a flat black field. */
+.intro::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  width: 120vmin;
+  height: 120vmin;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(231, 237, 240, 0.11),
+    rgba(231, 237, 240, 0) 50%
+  );
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+.intro p {
+  position: relative;
+  margin: 0;
+  /* Wide enough that the sentence lands in two or three lines and still
+     reads as one statement, rather than stacking into a tall block. */
+  max-width: 34ch;
+  text-align: center;
+  font-size: clamp(1.3rem, 3.1vw, 2.7rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.intro strong {
+  font-weight: 600;
+  color: #fff;
+}
+
 /* -------------------------------------------------------------------------
-   Below the hero: nothing yet. Plain background, so the fade lands somewhere.
+   Zoom parallax.
+
+   Seven tiles are stacked, each in its own full-bleed, centre-aligned layer.
+   Scaling a LAYER scales its tile's offset from centre along with the tile,
+   so the six off-centre tiles rush outward and leave frame while the centre
+   tile — the only one with no offset — simply grows in place. That single
+   difference is the whole effect.
+
+   The centre tile is square at 25vmax and its layer scales to exactly 4, so
+   it finishes at 100vmax: the smallest size that covers the viewport on
+   either orientation. The pin ends on that frame, so scrolling stops with
+   the most recent role filling the screen.
    ------------------------------------------------------------------------- */
-.after {
+
+/* Progress through the zoom, 0 → 1, on the same pattern as the hero's --p. */
+@property --z {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@keyframes zoom-progress {
+  from { --z: 0; }
+  to   { --z: 1; }
+}
+
+.zoom {
+  position: relative;
+  /* Pin length: the stage sticks for height − 100vh of scrolling. */
+  height: 300vh;
+  height: 300svh;
+  background: var(--bg);
+}
+
+/* `contain` is the range in which a subject taller than the viewport
+   completely fills it — precisely the span over which the stage is stuck,
+   and the equivalent of the reference's start-start → end-end offsets. */
+@supports (animation-timeline: view()) {
+  .zoom {
+    animation-name: zoom-progress;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: contain 0% contain 100%;
+  }
+}
+
+.zoom__stage {
+  position: sticky;
+  top: 0;
   height: 100vh;
   height: 100svh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.zoom__layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(calc(1 + var(--z) * (var(--s) - 1)));
+  will-change: transform;
+}
+
+/* Relative offsets shift the tile off the layer's centre; the layer's scale
+   then multiplies that distance, which is what throws it out of frame. */
+.zoom__tile {
+  position: relative;
+  top: var(--ty, 0vh);
+  left: var(--tx, 0vw);
+  width: var(--tw);
+  height: var(--th);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: var(--c);
+  border-radius: 2px;
+}
+
+/* Captions sit inside their tile, so they travel and grow with it. They
+   belong to the gallery reading, so they fade as soon as the tiles start to
+   fly — well before a tile grows past the viewport, which would otherwise
+   carry its bottom-anchored caption off the edge mid-sentence. */
+.zoom__cap {
+  width: 100%;
+  padding: 0.5em 0.62em;
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55));
+  color: #fff;
+  font-size: 0.58rem;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  opacity: calc(1 - clamp(0, calc(var(--z) / 0.3), 1));
+}
+
+/* What the final frame says. The centre tile's own caption is far below the
+   fold once it fills the screen, so the role is restated here — outside any
+   scaled layer, at a readable size — arriving as the zoom lands. */
+.zoom__focus {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 7vw 8vh;
+  text-align: center;
+  color: #fff;
+  pointer-events: none;
+  opacity: clamp(0, calc((var(--z) - 0.55) / 0.4), 1);
+}
+
+.zoom__focus b {
+  display: block;
+  font-size: clamp(1.6rem, 4.4vw, 3.2rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.zoom__focus span {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.zoom__cap b {
+  display: block;
+  font-weight: 650;
+  font-size: 1.12em;
+}
+
+.zoom__cap span {
+  display: block;
+  opacity: 0.82;
+  font-weight: 400;
+}
+
+/* The centre tile: square, no offset, and the one that fills the screen.
+   20vmax x scale 5 would be exactly 100vmax — the smallest size that covers
+   the viewport in either orientation. Landing exactly on that boundary means
+   any sub-pixel rounding (fractional viewport heights, browser zoom) leaves a
+   hairline of background at an edge, so the scale carries a little past it
+   and over-covers by about 1% instead. Kept deliberately modest at rest so
+   the other six can sit close without overlapping, which is what lets them
+   stay in frame well into the zoom. */
+.zoom__layer--centre { --s: 5.06; }
+.zoom__layer--centre .zoom__tile {
+  --tw: 20vmax;  --th: 20vmax;
+  --c: #2f6f8f;
+}
+
+/* The six that scatter and fly outward. A tile leaves frame when its scaled
+   offset carries it past the edge — but its own half-width works against
+   that offset, so a LARGER tile at a given offset stays in frame longer.
+   That is why these are broad, like the reference's, rather than small: it
+   is what keeps them present through the middle of the zoom instead of all
+   clearing in the first fifth of it and leaving a bare centre tile. */
+.zoom__layer:nth-child(2) { --s: 5.5; }
+.zoom__layer:nth-child(2) .zoom__tile {
+  --tw: 30vw; --th: 30vh; --tx: -13vw; --ty: -31vh; --c: #7a5d3f;
+}
+
+.zoom__layer:nth-child(3) { --s: 6; }
+.zoom__layer:nth-child(3) .zoom__tile {
+  --tw: 26vw; --th: 26vh; --tx: 16vw; --ty: -28vh; --c: #3f6b4f;
+}
+
+.zoom__layer:nth-child(4) { --s: 5.5; }
+.zoom__layer:nth-child(4) .zoom__tile {
+  --tw: 22vw; --th: 32vh; --tx: -28vw; --ty: 1vh; --c: #6b3f52;
+}
+
+.zoom__layer:nth-child(5) { --s: 6; }
+.zoom__layer:nth-child(5) .zoom__tile {
+  --tw: 22vw; --th: 32vh; --tx: 28vw; --ty: 1vh; --c: #4a4f7a;
+}
+
+.zoom__layer:nth-child(6) { --s: 5.5; }
+.zoom__layer:nth-child(6) .zoom__tile {
+  --tw: 28vw; --th: 24vh; --tx: -14vw; --ty: 31vh; --c: #7a6a3f;
+}
+
+.zoom__layer:nth-child(7) { --s: 6.5; }
+.zoom__layer:nth-child(7) .zoom__tile {
+  --tw: 24vw; --th: 22vh; --tx: 18vw; --ty: 31vh; --c: #3f5f6b;
+}
+
+/* Portrait. --vmax flips from the width to the height here, so the centre
+   square grows relative to the vw-sized tiles around it and the landscape
+   scatter collapses into a pile. The centre has to stay in vmax — that is
+   what guarantees it covers the screen — so the six around it are re-placed
+   instead: narrower, pushed to the edges, and stacked in three rows clear of
+   the square's top and bottom. */
+@media (max-aspect-ratio: 1/1) {
+  .zoom__layer:nth-child(2) .zoom__tile {
+    --tw: 40vw; --th: 18vh; --tx: -26vw; --ty: -24vh;
+  }
+  .zoom__layer:nth-child(3) .zoom__tile {
+    --tw: 36vw; --th: 16vh; --tx: 27vw; --ty: -26vh;
+  }
+  .zoom__layer:nth-child(4) .zoom__tile {
+    --tw: 26vw; --th: 22vh; --tx: -35vw; --ty: 0vh;
+  }
+  .zoom__layer:nth-child(5) .zoom__tile {
+    --tw: 26vw; --th: 22vh; --tx: 35vw; --ty: 0vh;
+  }
+  .zoom__layer:nth-child(6) .zoom__tile {
+    --tw: 38vw; --th: 17vh; --tx: -26vw; --ty: 25vh;
+  }
+  .zoom__layer:nth-child(7) .zoom__tile {
+    --tw: 34vw; --th: 15vh; --tx: 27vw; --ty: 27vh;
+  }
+  .zoom__cap { font-size: 0.5rem; }
+}
+
+/* Reduced motion: no zoom. The scale is the entire effect here, so with it
+   dropped the 300vh of pin would be three screens of dead scrolling — the
+   section collapses to one viewport and simply presents the roles as a
+   static, captioned gallery, which carries the same information. */
+@media (prefers-reduced-motion: reduce) {
+  .zoom {
+    height: 100vh;
+    height: 100svh;
+  }
+  .zoom__layer { transform: none; }
+  .zoom__cap { opacity: 1; }
+  .zoom__focus { display: none; }
+}
+
+/* Room to breathe after the zoom lands. */
+.after {
+  height: 60vh;
+  height: 60svh;
   background: var(--bg);
 }
 
@@ -420,10 +713,67 @@ body {
     <div class="hero__sky"></div>
     <div class="plane plane--back"></div>
     <div class="plane plane--mid"></div>
-    <div class="hero__name"><h1>Jonathan Wong</h1></div>
+    <div class="hero__name">
+      <h1>Jonathan Wong</h1>
+      <p class="hero__role">Program Manager — Cybersecurity, Azure, Automation, Retail Tech</p>
+    </div>
     <div class="plane plane--front"></div>
     <div class="hero__cue"></div>
-    <div class="hero__veil"></div>
+  </div>
+</div>
+
+<section class="intro">
+  <p>12+ years turning ambiguous problems into time tested systems at
+     <strong>Microsoft</strong>, <strong>Amazon</strong>, and
+     <strong>Starbucks</strong>.</p>
+</section>
+
+<!-- Zoom parallax. The first layer is the centre tile — the most recent
+     role — and is the one that grows to fill the screen. The rest are
+     placeholder colours and captions to be replaced with real roles. -->
+<div class="zoom" id="zoom">
+  <div class="zoom__stage">
+    <div class="zoom__layer zoom__layer--centre">
+      <div class="zoom__tile">
+        <div class="zoom__cap">
+          <b>Microsoft</b><span>Program Manager, Cybersecurity · Present</span>
+        </div>
+      </div>
+    </div>
+    <div class="zoom__layer">
+      <div class="zoom__tile">
+        <div class="zoom__cap"><b>Microsoft</b><span>Azure</span></div>
+      </div>
+    </div>
+    <div class="zoom__layer">
+      <div class="zoom__tile">
+        <div class="zoom__cap"><b>Amazon</b><span>Program Manager</span></div>
+      </div>
+    </div>
+    <div class="zoom__layer">
+      <div class="zoom__tile">
+        <div class="zoom__cap"><b>Starbucks</b><span>Retail Technology</span></div>
+      </div>
+    </div>
+    <div class="zoom__layer">
+      <div class="zoom__tile">
+        <div class="zoom__cap"><b>Earlier role</b><span>Company · Years</span></div>
+      </div>
+    </div>
+    <div class="zoom__layer">
+      <div class="zoom__tile">
+        <div class="zoom__cap"><b>Earlier role</b><span>Company · Years</span></div>
+      </div>
+    </div>
+    <div class="zoom__layer">
+      <div class="zoom__tile">
+        <div class="zoom__cap"><b>Earlier role</b><span>Company · Years</span></div>
+      </div>
+    </div>
+    <div class="zoom__focus">
+      <b>Microsoft</b>
+      <span>Program Manager, Cybersecurity · Present</span>
+    </div>
   </div>
 </div>
 
@@ -441,18 +791,28 @@ body {
   var root  = document.documentElement;
   var hero  = document.getElementById('hero');
   var stage = document.getElementById('stage');
+  var zoom  = document.getElementById('zoom');
   var span  = 1;
+  var zoomSpan = 1;
   var queued = false;
 
   function measure() {
     span = Math.max(1, hero.offsetHeight - stage.offsetHeight);
+    // The zoom's pin length: its own height less one viewport, matching the
+    // `contain` range the CSS path uses.
+    zoomSpan = Math.max(1, zoom.offsetHeight - innerHeight);
+  }
+
+  // Progress of an element's pin, 0 before it starts, 1 once it has run.
+  function pin(el, len) {
+    var v = -el.getBoundingClientRect().top / len;
+    return v < 0 ? 0 : v > 1 ? 1 : v;
   }
 
   function render() {
     queued = false;
-    var p = -hero.getBoundingClientRect().top / span;
-    if (p < 0) p = 0; else if (p > 1) p = 1;
-    root.style.setProperty('--p', p.toFixed(4));
+    root.style.setProperty('--p', pin(hero, span).toFixed(4));
+    root.style.setProperty('--z', pin(zoom, zoomSpan).toFixed(4));
   }
 
   function onScroll() {
