@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jonathan Wong</title>
+<meta name="description" content="Jonathan Wong">
+
+<!-- Theme-agnostic: the page renders identically under light and dark system settings.
+     `only light` opts the document out of any UA dark-mode adaptation, and every
+     colour below is stated explicitly. There are no prefers-color-scheme rules. -->
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#f2f6f8">
+
+<link rel="preload" as="image" href="assets/backlayer.png">
+<link rel="preload" as="image" href="assets/midlayer.png">
+<link rel="preload" as="image" href="assets/frontlayer.png">
+
+<style>
+/* =========================================================================
+   index1.html — step 1: parallax hero only.
+   Layer order (back to front): backlayer → midlayer → "Jonathan Wong" → frontlayer
+   ========================================================================= */
+
+/* Scroll progress through the hero, 0 → 1. Written once per frame by the
+   script at the bottom; every piece of motion below is derived from it. */
+@property --p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  color-scheme: only light;
+
+  /* Palette sampled from the three layer images. */
+  --bg: #f2f6f8;          /* page background — what the hero fades into */
+  --ink: #0d2630;
+  --sky-high: #45e3fb;
+  --sky-mid: #9deefd;
+  --sky-low: #d8f4fd;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* -------------------------------------------------------------------------
+   Hero
+   The .hero block is taller than the viewport; .hero__stage sticks to the top
+   and stays pinned for exactly one viewport of scrolling. That pinned
+   distance is the parallax run.
+   ------------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  height: 200vh;
+  height: 200svh;
+
+  /* ---- Framing knobs -------------------------------------------------
+     --*-h is the height each photo is drawn at (its width follows, 3:2),
+     --*-top is where the top of that photo sits, --*-x / --*-y are its
+     background-position. All three PNGs carry transparent margins — the
+     back and front layers are letterboxed, the mid layer has a cut-out
+     sky — and these values are what hold those margins off screen.
+     -------------------------------------------------------------------- */
+  --back-top:  -22vh;  --back-h:  130vh;  --back-x:  50%;  --back-y:  0%;
+  --mid-top:   -18vh;  --mid-h:   112vh;  --mid-x:   50%;  --mid-y:   0%;
+  --front-top:   8vh;  --front-h:  108vh;  --front-x: 50%;  --front-y:  0%;
+
+  /* ---- Motion -------------------------------------------------------
+     Travel over the full scroll of the hero. The camera reads as lifting:
+     the foreground sinks away downward while the city and the mountain
+     rise slightly. The difference between the planes is the parallax.
+     -------------------------------------------------------------------- */
+  --dy-back:   -4vh;   --dz-back:  0.05;
+  --dy-mid:   -11vh;   --dz-mid:   0.03;
+  --dy-name:  -22vh;
+  --dy-front:  32vh;   --dz-front: 0.06;
+}
+
+.hero__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Base sky. Sits behind everything and continues the backlayer's own sky
+   gradient upward, so the transparent margin above that photo blends away
+   instead of showing a seam. Also what you see while the art loads. */
+.hero__sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    180deg,
+    var(--sky-high) 0%,
+    #7ce9fc 5%,
+    var(--sky-mid) 9%,
+    #c4f2fd 22%,
+    var(--sky-low) 34%,
+    #eef8fa 52%,
+    var(--bg) 100%
+  );
+}
+
+/* Each plane's box is deliberately larger than the viewport in every direction,
+   so no amount of travel can lift an edge into frame. Image scale is set
+   explicitly rather than by `cover`, which would tie it to the box height:
+   width = max(100%, h x 3/2) reproduces cover exactly for these 3:2 photos
+   while leaving the box free to be as tall as it likes. */
+.plane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -30vh;
+  background-repeat: no-repeat;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+/* Fade the photography in once it has decoded, over the base sky. */
+.art-ready .plane { opacity: 1; }
+
+.plane--back {
+  z-index: 1;
+  top: var(--back-top);
+  background-image: url("assets/backlayer.png");
+  background-size: max(100%, calc(var(--back-h) * 1.5)) auto;
+  background-position: var(--back-x) var(--back-y);
+  transform: translate3d(0, calc(var(--p) * var(--dy-back)), 0)
+             scale(calc(1 + var(--p) * var(--dz-back)));
+}
+
+.plane--mid {
+  z-index: 2;
+  top: var(--mid-top);
+  /* The mid layer is the one plane whose opaque bottom edge can rise toward the
+     frame as it travels up and the foreground sinks. A canopy-toned strip pinned
+     to the bottom of its box continues it downward so no edge can ever show. */
+  background-image:
+    url("assets/midlayer.png"),
+    linear-gradient(#191c10, #191c10);
+  background-size:
+    max(100%, calc(var(--mid-h) * 1.5)) auto,
+    100% 45vh;
+  background-position:
+    var(--mid-x) var(--mid-y),
+    0 100%;
+  transform: translate3d(0, calc(var(--p) * var(--dy-mid)), 0)
+             scale(calc(1 + var(--p) * var(--dz-mid)));
+}
+
+.plane--front {
+  z-index: 4;
+  top: var(--front-top);
+  background-image: url("assets/frontlayer.png");
+  background-size: max(100%, calc(var(--front-h) * 1.5)) auto;
+  background-position: var(--front-x) var(--front-y);
+  transform: translate3d(0, calc(var(--p) * var(--dy-front)), 0)
+             scale(calc(1 + var(--p) * var(--dz-front)));
+}
+
+/* -------------------------------------------------------------------------
+   The name — its own plane, between midlayer (2) and frontlayer (4).
+   The family in the front layer passes in front of it; that occlusion is
+   the point of putting it here.
+   ------------------------------------------------------------------------- */
+.hero__name {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  top: 15vh;
+  padding: 0 6vw;
+  text-align: center;
+  will-change: transform, opacity;
+  transform: translate3d(0, calc(var(--p) * var(--dy-name)), 0);
+  opacity: calc(1 - clamp(0, calc((var(--p) - 0.22) / 0.50), 1));
+}
+
+.hero__name h1 {
+  margin: 0;
+  font-size: clamp(2.6rem, 7.2vw, 9rem);
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 18px 44px rgba(10, 45, 60, 0.16);
+}
+
+/* -------------------------------------------------------------------------
+   Fade to the background colour.
+   One sheet of --bg over the whole stage, above every plane, driven by the
+   same progress value. By the end of the hero the scene has fully resolved
+   into the page background.
+   ------------------------------------------------------------------------- */
+.hero__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  background: var(--bg);
+  opacity: clamp(0, calc((var(--p) - 0.34) / 0.60), 1);
+}
+
+/* Scroll affordance. Hero furniture — the effect needs a scroll to read. */
+.hero__cue {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 3.5vh;
+  width: 1px;
+  height: 46px;
+  margin-left: -0.5px;
+  background: linear-gradient(180deg, rgba(13, 38, 48, 0) 0%, rgba(13, 38, 48, 0.55) 100%);
+  opacity: calc(1 - clamp(0, calc(var(--p) / 0.12), 1));
+}
+
+/* -------------------------------------------------------------------------
+   Below the hero: nothing yet. Plain background, so the fade lands somewhere.
+   ------------------------------------------------------------------------- */
+.after {
+  height: 100vh;
+  height: 100svh;
+  background: var(--bg);
+}
+
+/* -------------------------------------------------------------------------
+   Framing adjustments.
+   A 3:2 photograph cannot fill every viewport shape, so these keep the
+   subjects in frame at the extremes.
+   ------------------------------------------------------------------------- */
+
+/* Tall and narrow (phones held upright): pull the crop left so the Space
+   Needle survives, and keep Rainier's peak on screen. */
+@media (max-aspect-ratio: 3/4) {
+  .hero {
+    --back-x: 45%;
+    --mid-x: 30%;
+    --front-x: 52%;
+  }
+  .hero__name { top: 12vh; }
+}
+
+/* Wide and short (ultrawide, or a laptop with a lot of browser chrome):
+   anchor the front layer low so the grass still meets the bottom edge. */
+@media (min-aspect-ratio: 19/10) {
+  .hero {
+    --front-top: -8vh;
+    --front-h: 116vh;
+    --mid-top: -26vh;
+    --mid-h: 132vh;
+    --back-top: -30vh;
+    --back-h: 140vh;
+  }
+  .hero__name { top: 6vh; }
+}
+
+@media (max-height: 620px) {
+  .hero__name {
+    top: 10vh;
+  }
+  .hero__name h1 { font-size: clamp(2rem, 7vw, 4rem); }
+}
+
+/* Hold the composition and the fade; drop the travel. */
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    --dy-back: 0vh;  --dz-back: 0;
+    --dy-mid: 0vh;   --dz-mid: 0;
+    --dy-name: 0vh;
+    --dy-front: 0vh; --dz-front: 0;
+  }
+  .plane { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero" id="hero">
+  <div class="hero__stage" id="stage">
+    <div class="hero__sky"></div>
+    <div class="plane plane--back"></div>
+    <div class="plane plane--mid"></div>
+    <div class="hero__name"><h1>Jonathan Wong</h1></div>
+    <div class="plane plane--front"></div>
+    <div class="hero__cue"></div>
+    <div class="hero__veil"></div>
+  </div>
+</div>
+
+<div class="after"></div>
+
+<script>
+(function () {
+  var root  = document.documentElement;
+  var hero  = document.getElementById('hero');
+  var stage = document.getElementById('stage');
+  var span  = 1;
+  var queued = false;
+
+  function measure() {
+    span = Math.max(1, hero.offsetHeight - stage.offsetHeight);
+  }
+
+  function render() {
+    queued = false;
+    var p = -hero.getBoundingClientRect().top / span;
+    if (p < 0) p = 0; else if (p > 1) p = 1;
+    root.style.setProperty('--p', p.toFixed(4));
+  }
+
+  function onScroll() {
+    if (!queued) {
+      queued = true;
+      requestAnimationFrame(render);
+    }
+  }
+
+  measure();
+  render();
+
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', function () { measure(); onScroll(); });
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', function () { measure(); onScroll(); });
+  }
+
+  // Reveal the planes together once all three have decoded, so the hero never
+  // assembles itself one layer at a time in front of the visitor.
+  var reveal = function () { root.classList.add('art-ready'); };
+  var sources = ['assets/backlayer.png', 'assets/midlayer.png', 'assets/frontlayer.png'];
+
+  Promise.all(sources.map(function (src) {
+    var img = new Image();
+    img.src = src;
+    var done = img.decode ? img.decode() : Promise.resolve();
+    return done['catch'](function () {});
+  })).then(reveal);
+
+  setTimeout(reveal, 6000); // never leave the hero blank if a decode stalls
+})();
+</script>
+</body>
+</html>
