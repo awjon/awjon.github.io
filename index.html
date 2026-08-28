@@ -117,18 +117,20 @@ body {
   --mid-img-h: calc(max(100vw, var(--mid-h) * 1.5) / 1.5);
   --mid-fade:  26vh;   /* distance over which the canopy dissolves into --bg */
   /* The front layer follows the reference parallax model: it spans the full
-     width of the viewport and its height simply follows from that, so the
-     photo is never cropped and never scaled down from its native pixels.
-     A 3:2 image at 100% width is 100vw/1.5 tall — that IS the layer's box,
-     so the art fills it exactly and no box edge can ever cut the picture.
-     Everything about where it sits is expressed against that height below,
-     which keeps it correct at any viewport shape. */
+     --front-w and is drawn at its native 3:2, so the photo is never squashed
+     and never scaled down from its native pixels.
+
+     The divisor here is the layer BOX's aspect, not the photo's. At 1.5 the
+     box is exactly the drawn photo. Above 1.5 the box is shorter, which
+     trims the very bottom of the grass — deliberate, and invisible, because
+     the ::before fade below dissolves the last stretch into --bg and the
+     ::after fill continues it, so the trim never reads as a cut edge. */
   --front-w: 100vw;
   --front-h: calc(var(--front-w) / 1.6);
 
-  /* Where the family lands on load. The tallest head sits ~4.5% down the
-     PNG, so subtracting that fraction of the image height from 90vh puts
-     the top of the people exactly at the bottom 10% of the viewport. */
+  /* Where the family lands on load, as a fraction of the layer height
+     subtracted from 90vh: 0 would hang the layer's top there, 0.5 centres
+     the layer on it. */
   --front-top: calc(90vh - 0.5 * var(--front-h));
 
   /* ---- Motion -------------------------------------------------------
@@ -404,10 +406,8 @@ body {
     --dy-mid: 0vh;   --dz-mid: 0;
     --dy-name: 0vh;
     --dy-front: 0vh; --dz-front: 0;
-    /* With the travel dropped, the load position would leave only the tops
-       of two heads showing for the whole page. Raise the layer so the still
-       composition shows the family properly instead. */
-    --front-top: calc(34vh - 0.045 * var(--front-h));
+    /* No --front-top override needed: the load position already frames the
+       family, so the still composition holds up on its own. */
   }
   .plane { transition: none; }
 }
