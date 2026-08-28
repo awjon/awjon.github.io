@@ -7,7 +7,7 @@
 <!-- Self-contained build: layers embedded, no script required for either the
      art or the parallax. Renders anywhere, including opened straight from a
      phone's Downloads. Generated from index1.html. -->
-<meta name="description" content="Jonathan Wong">
+<meta name="description" content="Jonathan Wong — Technical Program Manager. 15+ years turning ambiguous problems into time tested systems at Microsoft and Starbucks.">
 
 <!-- Theme-agnostic: the page renders identically under light and dark system settings.
      `only dark` opts the document out of any UA light-mode adaptation and gives
@@ -197,15 +197,7 @@ body {
   transform-origin: 50% 50%;
   will-change: transform;
   opacity: 1;
-  transition: opacity 900ms ease;
 }
-
-/* Planes are visible by default, so the hero renders with no script at all.
-   Only when a script is running do we hide them and fade each in as its own
-   art arrives — which also means a layer that fails to load stays hidden
-   rather than exposing its backing colour. */
-.js .plane { opacity: 0; }
-.js .plane.is-loaded { opacity: 1; }
 
 .plane--back {
   z-index: 1;
@@ -841,10 +833,15 @@ body {
 
 <script>
 (function () {
-  // CSS drives the parallax wherever scroll-driven animations exist; running
-  // this as well would fight it, since an inline value would override the
-  // animated one.
-  if (window.CSS && CSS.supports && CSS.supports('animation-timeline', 'scroll()')) {
+  // CSS drives the parallax wherever scroll-driven animations exist, so this
+  // stands down there rather than fighting it. Both timelines have to be
+  // available to stand down: the hero rides scroll(), the zoom rides view().
+  // Testing only scroll() would leave --z unset on an engine that shipped one
+  // without the other, freezing the zoom for its whole three viewports.
+  var css = window.CSS;
+  if (css && css.supports &&
+      css.supports('animation-timeline', 'scroll()') &&
+      css.supports('animation-timeline', 'view()')) {
     return;
   }
 
