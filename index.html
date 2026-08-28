@@ -628,20 +628,6 @@ body {
   .zoom__cap { font-size: 0.5rem; }
 }
 
-/* Reduced motion: no zoom. The scale is the entire effect here, so with it
-   dropped the 300vh of pin would be three screens of dead scrolling — the
-   section collapses to one viewport and simply presents the roles as a
-   static, captioned gallery, which carries the same information. */
-@media (prefers-reduced-motion: reduce) {
-  .zoom {
-    height: 100vh;
-    height: 100svh;
-  }
-  .zoom__layer { transform: none; }
-  .zoom__cap { opacity: 1; }
-  .zoom__focus { display: none; }
-}
-
 /* Room to breathe after the zoom lands. */
 .after {
   height: 60vh;
@@ -692,18 +678,12 @@ body {
   .hero__name h1 { font-size: clamp(2rem, 7vw, 4rem); }
 }
 
-/* Hold the composition and the fade; drop the travel. */
-@media (prefers-reduced-motion: reduce) {
-  .hero {
-    --dy-back: 0vh;  --dz-back: 0;
-    --dy-mid: 0vh;   --dz-mid: 0;
-    --dy-name: 0vh;
-    --dy-front: 0vh; --dz-front: 0;
-    /* No --front-top override needed: the load position already frames the
-       family, so the still composition holds up on its own. */
-  }
-  .plane { transition: none; }
-}
+/* Motion is deliberately NOT reduced under prefers-reduced-motion. The
+   parallax is the substance of this page rather than decoration, and it is
+   scroll-driven — it only advances as far as the reader scrolls, and stops
+   when they stop — so it is the gentler class of motion. This is an explicit
+   product decision: a visitor whose system asks for less motion still gets
+   the full effect. */
 </style>
 </head>
 <body>

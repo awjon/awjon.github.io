@@ -1,0 +1,15 @@
+{
+  "artboards": [
+    { "file": "ScrollMap.dc.html", "x": 0, "y": 0, "w": 880, "h": 900 },
+    { "file": "Main.dc.html", "x": 1000, "y": 0, "w": 390, "h": 844 },
+    { "file": "Impact.dc.html", "x": 1480, "y": 0, "w": 390, "h": 844 },
+    { "file": "Career.dc.html", "x": 1960, "y": 0, "w": 390, "h": 844 },
+    { "file": "Contact.dc.html", "x": 2440, "y": 0, "w": 390, "h": 844 },
+    { "file": "Desktop.dc.html", "x": 0, "y": 1060, "w": 1440, "h": 900 }
+  ],
+  "annotations": [
+    { "id": "note-mobile", "x": 1000, "y": -130, "w": 640, "text": "Mobile first — 390x844. Read left to right: hero, impact, career, contact.\nDashed blue fields are placeholders for facts I do not have. No figures or dates were invented." },
+    { "id": "note-desktop", "x": 0, "y": 940, "w": 520, "text": "Desktop, 1440x900. Same content, same tokens, wider composition." }
+  ],
+  "launch": { "view": "canvas" }
+}
