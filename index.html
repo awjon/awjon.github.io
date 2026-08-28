@@ -489,13 +489,18 @@ body {
    carry its bottom-anchored caption off the edge mid-sentence. */
 .zoom__cap {
   width: 100%;
-  padding: 0.5em 0.62em;
-  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55));
+  padding: 0.6em 0.65em;
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.66));
   color: #fff;
   font-size: 0.58rem;
-  line-height: 1.25;
+  line-height: 1.28;
   letter-spacing: 0.01em;
   opacity: calc(1 - clamp(0, calc(var(--z) / 0.3), 1));
+  /* Four lines — company, role, business, years — each on its own row so the
+     eye can scan one column of companies without parsing a comma list. */
+  display: flex;
+  flex-direction: column;
+  gap: 0.18em;
 }
 
 /* What the final frame says. The centre tile's own caption is far below the
@@ -701,93 +706,96 @@ button.zoom__tile:focus-visible .zoom__more {
 }
 
 .zoom__cap b {
-  display: block;
   font-weight: 650;
-  font-size: 1.12em;
+  font-size: 1.16em;
+  letter-spacing: -0.01em;
 }
 
-.zoom__cap span {
-  display: block;
-  opacity: 0.82;
-  font-weight: 400;
-}
+/* Weight and opacity carry the hierarchy, since all four lines are the same
+   size: the role reads next after the company, the business unit sits under
+   it, and the years recede. */
+.zoom__cap .role { font-weight: 600; opacity: 0.95; }
+.zoom__cap .biz  { font-weight: 400; opacity: 0.7; }
+.zoom__cap .yr   { font-weight: 500; opacity: 0.55; font-variant-numeric: tabular-nums; }
 
-/* The centre tile: square, no offset, and the one that fills the screen.
+/* The centre tile: square, no offset, and the one that fills the screen. It
+   is the skills panel now rather than a role — the gallery of where he has
+   worked zooms into what he actually does, and this is the frame a scroll
+   video would take over.
+
    20vmax x scale 5 would be exactly 100vmax — the smallest size that covers
    the viewport in either orientation. Landing exactly on that boundary means
    any sub-pixel rounding (fractional viewport heights, browser zoom) leaves a
    hairline of background at an edge, so the scale carries a little past it
-   and over-covers by about 1% instead. Kept deliberately modest at rest so
-   the other six can sit close without overlapping, which is what lets them
-   stay in frame well into the zoom. */
+   and over-covers by about 1% instead. */
 .zoom__layer--centre { --s: 5.06; }
 .zoom__layer--centre .zoom__tile {
   --tw: 20vmax;  --th: 20vmax;
   --c: #2f6f8f;
 }
 
-/* The six that scatter and fly outward. A tile leaves frame when its scaled
-   offset carries it past the edge — but its own half-width works against
-   that offset, so a LARGER tile at a given offset stays in frame longer.
-   That is why these are broad, like the reference's, rather than small: it
-   is what keeps them present through the middle of the zoom instead of all
-   clearing in the first fifth of it and leaving a bare centre tile. */
-.zoom__layer:nth-child(2) { --s: 5.5; }
+/* The six roles: two columns of three, standing vertically either side of the
+   centre. Portrait-shaped tiles suit the four-line caption and leave the
+   middle of the frame to the square. A tile leaves frame once its scaled
+   offset clears the edge, and its own half-width works against that offset —
+   these are held close enough in, and scaled gently enough, to stay through
+   the first half of the zoom rather than clearing at once. */
+.zoom__layer:nth-child(2) { --s: 5.0; }
 .zoom__layer:nth-child(2) .zoom__tile {
-  --tw: 30vw; --th: 30vh; --tx: -13vw; --ty: -31vh; --c: #7a5d3f;
+  --tw: 15vw; --th: 27vh; --tx: -26vw; --ty: -29vh; --c: #7a5d3f;
 }
 
-.zoom__layer:nth-child(3) { --s: 6; }
+.zoom__layer:nth-child(3) { --s: 5.3; }
 .zoom__layer:nth-child(3) .zoom__tile {
-  --tw: 26vw; --th: 26vh; --tx: 16vw; --ty: -28vh; --c: #3f6b4f;
+  --tw: 15vw; --th: 27vh; --tx: 26vw; --ty: -29vh; --c: #3f6b4f;
 }
 
-.zoom__layer:nth-child(4) { --s: 5.5; }
+.zoom__layer:nth-child(4) { --s: 5.6; }
 .zoom__layer:nth-child(4) .zoom__tile {
-  --tw: 22vw; --th: 32vh; --tx: -28vw; --ty: 1vh; --c: #6b3f52;
+  --tw: 15vw; --th: 27vh; --tx: -26vw; --ty: 0vh; --c: #6b3f52;
 }
 
-.zoom__layer:nth-child(5) { --s: 6; }
+.zoom__layer:nth-child(5) { --s: 5.9; }
 .zoom__layer:nth-child(5) .zoom__tile {
-  --tw: 22vw; --th: 32vh; --tx: 28vw; --ty: 1vh; --c: #4a4f7a;
+  --tw: 15vw; --th: 27vh; --tx: 26vw; --ty: 0vh; --c: #4a4f7a;
 }
 
-.zoom__layer:nth-child(6) { --s: 5.5; }
+.zoom__layer:nth-child(6) { --s: 6.2; }
 .zoom__layer:nth-child(6) .zoom__tile {
-  --tw: 28vw; --th: 24vh; --tx: -14vw; --ty: 31vh; --c: #7a6a3f;
+  --tw: 15vw; --th: 27vh; --tx: -26vw; --ty: 29vh; --c: #7a6a3f;
 }
 
 .zoom__layer:nth-child(7) { --s: 6.5; }
 .zoom__layer:nth-child(7) .zoom__tile {
-  --tw: 24vw; --th: 22vh; --tx: 18vw; --ty: 31vh; --c: #3f5f6b;
+  --tw: 15vw; --th: 27vh; --tx: 26vw; --ty: 29vh; --c: #3f5f6b;
 }
 
-/* Portrait. --vmax flips from the width to the height here, so the centre
-   square is inherently about 43vw wide on a phone — it has to be, since it
-   must still reach 100vmax to cover the screen. That leaves too little room
-   beside it to hold a caption, so the six are stacked in rows above and below
-   it rather than flanking it, each wide enough to set the company, role and
-   years without clipping. */
+/* Portrait. --vmax flips from the width to the height here, so at 20vmax the
+   centre square would be ~43vw wide on a phone and there would be no room
+   beside it. It shrinks to 14vmax so two columns of tiles can stand either
+   side, and its scale rises to match: the square still has to reach 100vmax
+   to cover the screen, so 14 x 7.25 replaces 20 x 5.06. */
 @media (max-aspect-ratio: 1/1) {
-  .zoom__layer:nth-child(2) .zoom__tile {
-    --tw: 46vw; --th: 14vh; --tx: -24vw; --ty: -32vh;
-  }
-  .zoom__layer:nth-child(3) .zoom__tile {
-    --tw: 44vw; --th: 14vh; --tx: 25vw; --ty: -32vh;
-  }
-  .zoom__layer:nth-child(4) .zoom__tile {
-    --tw: 44vw; --th: 13vh; --tx: -25vw; --ty: -19vh;
-  }
-  .zoom__layer:nth-child(5) .zoom__tile {
-    --tw: 44vw; --th: 13vh; --tx: 25vw; --ty: -19vh;
-  }
-  .zoom__layer:nth-child(6) .zoom__tile {
-    --tw: 46vw; --th: 14vh; --tx: -24vw; --ty: 23vh;
-  }
+  .zoom__layer--centre { --s: 7.25; }
+  .zoom__layer--centre .zoom__tile { --tw: 14vmax; --th: 14vmax; }
+
+  .zoom__layer:nth-child(2) .zoom__tile,
+  .zoom__layer:nth-child(3) .zoom__tile,
+  .zoom__layer:nth-child(4) .zoom__tile,
+  .zoom__layer:nth-child(5) .zoom__tile,
+  .zoom__layer:nth-child(6) .zoom__tile,
   .zoom__layer:nth-child(7) .zoom__tile {
-    --tw: 44vw; --th: 14vh; --tx: 25vw; --ty: 23vh;
+    --tw: 30vw; --th: 22vh;
   }
-  .zoom__cap { font-size: 0.55rem; padding: 0.45em 0.55em; }
+
+  .zoom__layer:nth-child(2) .zoom__tile { --tx: -32vw; --ty: -25vh; }
+  .zoom__layer:nth-child(3) .zoom__tile { --tx:  32vw; --ty: -25vh; }
+  .zoom__layer:nth-child(4) .zoom__tile { --tx: -32vw; --ty:   0vh; }
+  .zoom__layer:nth-child(5) .zoom__tile { --tx:  32vw; --ty:   0vh; }
+  .zoom__layer:nth-child(6) .zoom__tile { --tx: -32vw; --ty:  25vh; }
+  .zoom__layer:nth-child(7) .zoom__tile { --tx:  32vw; --ty:  25vh; }
+
+  .zoom__cap { font-size: 0.52rem; padding: 0.5em 0.55em; }
 }
 
 /* -------------------------------------------------------------------------
@@ -936,85 +944,112 @@ button.zoom__tile:focus-visible .zoom__more {
      <strong>Microsoft</strong> and <strong>Starbucks</strong>.</p>
 </section>
 
-<!-- Zoom parallax. The first layer is the centre tile — the most recent
-     role — and is the one that grows to fill the screen. Captions carry the
-     company, the role and the years and nothing else: the detail lives on
-     LinkedIn, and this section is meant to be looked at, not read. -->
+<!-- Zoom parallax. The centre tile is the skills panel — the gallery of
+     companies zooms into what he actually does — and it is the frame a scroll
+     video is meant to take over, so it is not a control. The six around it are
+     the roles, most recent top-left, reading down each column. -->
 <div class="zoom" id="zoom">
   <div class="zoom__stage">
     <div class="zoom__layer zoom__layer--centre">
       <div class="zoom__tile">
-        <div class="zoom__cap">
-          <b>Microsoft</b><span>Technical Program Manager, Security Response Center · 2022–2025</span>
-        </div>
+        <div class="zoom__cap"><b>Skills</b></div>
       </div>
     </div>
     <div class="zoom__layer">
+      <button class="zoom__tile" type="button" data-role="msrc"
+              aria-haspopup="dialog" aria-label="Microsoft, Technical Program Manager, Security Response Center, 2022–2025. Open detail.">
+        <span class="zoom__cap">
+          <b>Microsoft</b>
+          <span class="role">Technical Program Manager</span>
+          <span class="biz">Security Response Center</span>
+          <span class="yr">2022–2025</span>
+        </span>
+        <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+      </button>
+    </div>
+    <div class="zoom__layer">
       <button class="zoom__tile" type="button" data-role="fasttrack"
-              aria-haspopup="dialog" aria-label="Microsoft — Technical Program Manager, Fast Track · 2020–2022. Open detail.">
-        <span class="zoom__cap"><b>Microsoft</b><span>Technical Program Manager, Fast Track · 2020–2022</span></span>
+              aria-haspopup="dialog" aria-label="Microsoft, Technical Program Manager, Fast Track, 2020–2022. Open detail.">
+        <span class="zoom__cap">
+          <b>Microsoft</b>
+          <span class="role">Technical Program Manager</span>
+          <span class="biz">Fast Track</span>
+          <span class="yr">2020–2022</span>
+        </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
     </div>
     <div class="zoom__layer">
       <button class="zoom__tile" type="button" data-role="starbucks"
-              aria-haspopup="dialog" aria-label="Starbucks — Technical Product Manager, Retail Platform · 2019–2020. Open detail.">
-        <span class="zoom__cap"><b>Starbucks</b><span>Technical Product Manager, Retail Platform · 2019–2020</span></span>
+              aria-haspopup="dialog" aria-label="Starbucks, Technical Product Manager, Retail Platform Engineering, 2019–2020. Open detail.">
+        <span class="zoom__cap">
+          <b>Starbucks</b>
+          <span class="role">Technical Product Manager</span>
+          <span class="biz">Retail Platform Engineering</span>
+          <span class="yr">2019–2020</span>
+        </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
     </div>
     <div class="zoom__layer">
       <button class="zoom__tile" type="button" data-role="marketplace"
-              aria-haspopup="dialog" aria-label="Microsoft — Business Analyst, Azure Marketplace · 2017–2018. Open detail.">
-        <span class="zoom__cap"><b>Microsoft</b><span>Business Analyst, Azure Marketplace · 2017–2018</span></span>
+              aria-haspopup="dialog" aria-label="Microsoft, Business Analyst, Azure Marketplace, 2017–2018. Open detail.">
+        <span class="zoom__cap">
+          <b>Microsoft</b>
+          <span class="role">Business Analyst</span>
+          <span class="biz">Azure Marketplace</span>
+          <span class="yr">2017–2018</span>
+        </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
     </div>
     <div class="zoom__layer">
       <button class="zoom__tile" type="button" data-role="incentives"
-              aria-haspopup="dialog" aria-label="Microsoft — Program Manager, Incentives · 2015–2017. Open detail.">
-        <span class="zoom__cap"><b>Microsoft</b><span>Program Manager, Incentives · 2015–2017</span></span>
-        <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
-      </button>
-    </div>
-    <div class="zoom__layer">
-      <button class="zoom__tile" type="button" data-role="codefellows"
-              aria-haspopup="dialog" aria-label="Code Fellows — Web Development. Open detail.">
-        <span class="zoom__cap"><b>Code Fellows</b><span>Web Development</span></span>
+              aria-haspopup="dialog" aria-label="Microsoft, Program Manager, Incentives, 2015–2017. Open detail.">
+        <span class="zoom__cap">
+          <b>Microsoft</b>
+          <span class="role">Program Manager</span>
+          <span class="biz">Incentives</span>
+          <span class="yr">2015–2017</span>
+        </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
     </div>
     <div class="zoom__layer">
       <button class="zoom__tile" type="button" data-role="illinois"
-              aria-haspopup="dialog" aria-label="University of Illinois — BS Management · BS Marketing. Open detail.">
-        <span class="zoom__cap"><b>University of Illinois</b><span>BS Management · BS Marketing</span></span>
+              aria-haspopup="dialog" aria-label="University of Illinois, Bachelor of Science, Management · Marketing. Open detail.">
+        <span class="zoom__cap">
+          <b>University of Illinois</b>
+          <span class="role">Bachelor of Science</span>
+          <span class="biz">Management · Marketing</span>
+        </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
     </div>
     <div class="zoom__focus">
-      <b>Microsoft</b>
-      <span>Technical Program Manager · Security Response Center</span>
+      <b>Skills</b>
+      <span>Cloud infrastructure · Program strategy · Automation · Data &amp; risk</span>
     </div>
   </div>
 </div>
 
-<footer class="ending">
-  <p>The full history, and everything it took, lives on LinkedIn.</p>
-  <div class="ending__links">
-    <a href="https://www.linkedin.com/in/jonkwong" rel="me noopener" target="_blank">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle><path d="M10 21V9m0 5a5 5 0 0 1 10 0v7"></path></svg>
-      LinkedIn
-    </a>
-    <a href="assets/Jonathan-Wong-Resume.pdf" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M9 15h6"></path></svg>
-      Résumé
-    </a>
-  </div>
-  <div class="ending__meta">Seattle, WA</div>
-</footer>
-
 <!-- Role detail, one dialog per openable tile. Modal <dialog> gives the
      Escape key, the focus trap and focus return to the tile for free. -->
+<dialog class="sheet" id="role-msrc" aria-labelledby="role-msrc-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">2022–2025 · Digital Security and Resilience</p>
+    <h2 id="role-msrc-title">Microsoft — Technical Program Manager, Security Response Center</h2>
+    <ul>
+        <li>Led program strategy for Azure Virtual Desktop Infrastructure with tenant isolation, serving global teams of 100k+ end users.</li>
+        <li>Delivered critical infrastructure in 34 days during an active nation-state cyber attack, through real-time reprioritisation.</li>
+        <li>Enabled remote work for 108k users while meeting EU data residency compliance across three European operations.</li>
+        <li>Reduced manual approvals and deployments 65% with Copilot Studio and Power Platform, cutting onboarding by 3 days.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
 <dialog class="sheet" id="role-fasttrack" aria-labelledby="role-fasttrack-title">
   <div class="sheet__panel">
     <p class="sheet__meta">2020–2022 · via Avenue In Consulting</p>
@@ -1069,19 +1104,6 @@ button.zoom__tile:focus-visible .zoom__more {
         <li>Led a team of 6 managers and 16 processors across Windows, Xbox, MSN and Bing.</li>
         <li>Reduced SLA 70%, setting new benchmarks, and streamlined year-over-year volume 20%.</li>
         <li>Owned 2 core incentive programs, communicating with 60+ partners.</li>
-    </ul>
-    <form method="dialog">
-      <button class="sheet__close" type="submit">Close</button>
-    </form>
-  </div>
-</dialog>
-<dialog class="sheet" id="role-codefellows" aria-labelledby="role-codefellows-title">
-  <div class="sheet__panel">
-    <p class="sheet__meta">Certificate</p>
-    <h2 id="role-codefellows-title">Code Fellows — Web Development</h2>
-    <ul>
-        <li>Object-oriented programming, MVC and responsive design.</li>
-        <li>HTML, CSS, JavaScript, jQuery and React; Git and Heroku.</li>
     </ul>
     <form method="dialog">
       <button class="sheet__close" type="submit">Close</button>
