@@ -112,7 +112,7 @@ body {
   /* Where the family lands on load. The tallest head sits ~4.5% down the
      PNG, so subtracting that fraction of the image height from 90vh puts
      the top of the people exactly at the bottom 10% of the viewport. */
-  --front-top: calc(90vh - 0.045 * var(--front-h));
+  --front-top: calc(110vh - 0.045 * var(--front-h));
 
   /* ---- Motion -------------------------------------------------------
      Travel over the full scroll of the hero. The camera reads as lifting:
@@ -120,7 +120,7 @@ body {
      rise slightly. The difference between the planes is the parallax.
      -------------------------------------------------------------------- */
   --dy-back:   -4vh;   --dz-back:  0.05;
-  --dy-mid:   -11vh;   --dz-mid:   0.03;
+  --dy-mid:   -14vh;   --dz-mid:   0.03;
   --dy-name:  -22vh;
   /* The foreground is the fastest plane, as in the reference: it travels a
      full image-height over the pin range, so the picture is read from the
