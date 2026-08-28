@@ -112,7 +112,7 @@ body {
   /* Where the family lands on load. The tallest head sits ~4.5% down the
      PNG, so subtracting that fraction of the image height from 90vh puts
      the top of the people exactly at the bottom 10% of the viewport. */
-  --front-top: calc(80vh - 0.045 * var(--front-h));
+  --front-top: calc(90vh - 0.045 * var(--front-h));
 
   /* ---- Motion -------------------------------------------------------
      Travel over the full scroll of the hero. The camera reads as lifting:
@@ -224,7 +224,7 @@ body {
   bottom: auto;
   height: var(--front-h);
   background-size: var(--front-w) auto;
-  background-position: 50% 0;
+  background-position: 20% 0;
   transform: translate3d(0, calc(var(--p) * var(--dy-front)), 0)
              scale(calc(1 + var(--p) * var(--dz-front)));
 }
