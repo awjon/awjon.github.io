@@ -141,12 +141,15 @@ body {
   --dy-back:   -4vh;   --dz-back:  0.05;
   --dy-mid:   -18vh;   --dz-mid:   0.03;
   --dy-name:  -22vh;
-  /* The foreground is the fastest plane, as in the reference: it travels a
-     full image-height over the pin range, so the picture is read from the
-     heads down to the grass as you scroll and the family rushes up past
-     the camera. Stated in terms of --front-h rather than vh so the whole
-     photo passes through frame on any screen shape. */
-  --dy-front: calc(-0.8 * var(--front-h));   --dz-front: 0.06;
+  /* The foreground is the fastest plane, as in the reference: it travels
+     half an image-height over the pin range, so the family visibly rushes
+     up past the camera while the photo's own bottom edge stays just past
+     the fold at rest — which is what keeps the flat page-bg fill below it
+     (the ::after two rules down) to a sliver instead of a growing void by
+     the end of the scroll. Stated in terms of --front-h rather than vh so
+     the travel — and the fill it exposes — scales the same way on any
+     screen shape. */
+  --dy-front: calc(-0.5 * var(--front-h));   --dz-front: 0.06;
 }
 
 .hero__stage {
@@ -344,61 +347,8 @@ body {
 }
 
 /* =========================================================================
-   Below the hero — the value proposition, then the zoom parallax.
+   Below the hero — the zoom parallax, headed by the value proposition.
    ========================================================================= */
-
-/* The one-liner that opens the section. */
-.intro {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  min-height: 60svh;
-  padding: 14vh 7vw;
-  background: var(--bg);
-  overflow: hidden;
-}
-
-/* Radial spotlight behind the line, as in the reference. Barely there —
-   just enough to lift the type off a flat black field. */
-.intro::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: 50%;
-  width: 120vmin;
-  height: 120vmin;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(231, 237, 240, 0.11),
-    rgba(231, 237, 240, 0) 50%
-  );
-  filter: blur(30px);
-  pointer-events: none;
-}
-
-.intro p {
-  position: relative;
-  margin: 0;
-  /* Wide enough that the sentence lands in two or three lines and still
-     reads as one statement, rather than stacking into a tall block. */
-  max-width: 34ch;
-  text-align: center;
-  font-size: clamp(1.3rem, 3.1vw, 2.7rem);
-  font-weight: 600;
-  line-height: 1.18;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  text-wrap: balance;
-}
-
-.intro strong {
-  font-weight: 600;
-  color: #fff;
-}
 
 /* -------------------------------------------------------------------------
    Zoom parallax.
@@ -456,6 +406,33 @@ body {
   height: 100svh;
   overflow: hidden;
   background: var(--bg);
+
+  /* The gallery is laid out from its outer bounds inward rather than tile by
+     tile: the ring's extent is fixed, and the tiles fill it with exactly --gap
+     between them. Fixing the extent is what keeps the header's band above the
+     top row and the tiles' flight paths unchanged while the gaps close.
+
+     --mid is the centre square, which the zoom's cover math pins to a vmax
+     figure while everything around it is in vh. So the square, not a vh
+     number, has to set the middle row's height — otherwise the gap above and
+     below it drifts with the window's aspect ratio, which is exactly what a
+     5px gap cannot afford. */
+  --gap: 5px;
+  --ring-w: 68vw;
+  --ring-h: 85vh;
+  --mid: 20vmax;
+  --small-w: 18vw;
+
+  /* Everything else falls out of those five. */
+  --row-h:   calc((var(--ring-h) - var(--mid) - 2 * var(--gap)) / 2);
+  --flank-w: calc((var(--ring-w) - var(--mid) - 2 * var(--gap)) / 2);
+  --bar-w:   calc(var(--ring-w) - var(--small-w) - var(--gap));
+  /* Offsets are of a tile's centre from the stage's, so each is half the slack
+     left over once that tile is pushed flush against the ring's edge. */
+  --row-y:   calc((var(--ring-h) - var(--row-h)) / 2);
+  --bar-x:   calc((var(--ring-w) - var(--bar-w)) / 2);
+  --small-x: calc((var(--ring-w) - var(--small-w)) / 2);
+  --flank-x: calc((var(--ring-w) - var(--flank-w)) / 2);
 }
 
 .zoom__layer {
@@ -477,20 +454,98 @@ body {
   width: var(--tw);
   height: var(--th);
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   overflow: hidden;
   background: var(--c);
   border-radius: 2px;
 }
 
+/* The value proposition, now the gallery's header rather than a screen of its
+   own. It sits in the band above the top row of tiles — inside the sticky
+   stage, so it is on screen while the tiles are still a gallery — and hands
+   off the moment they start to fly, since from there the reader is inside the
+   zoom rather than reading the frame. */
+.zoom__lede {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  padding: 1.5vh 32px 0;
+  /* Wraps by default — this is the safe fallback, not just the phone case:
+     any window narrower than the breakpoint below lands here too. Balanced
+     rather than a ragged one-word orphan on the second line. A vw figure,
+     not ch: ch scales with the font-size right above, and on the shortest
+     windows that size is already shrinking to protect the tiles below —
+     a ch cap would then narrow in lockstep and force a third line exactly
+     where there is the least height to spare for one. */
+  max-width: 90vw;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: normal;
+  text-wrap: balance;
+  /* vh-driven, not vw: in landscape shape (the portrait override below
+     replaces this) the header's whole budget is the 6vh left once the top
+     row's own 7.5vh start gives back this rule's 1.5vh of padding, and
+     that budget is fixed in height regardless of how wide the window is.
+     Sized in vw instead, a wide-but-short window (a resized laptop
+     window, a small phone on its side) would happily grow the font right
+     up to the point the second line runs into the tiles. 2.1vh keeps two
+     lines at this line-height under 6vh with a little to spare; no floor,
+     because the alternative to a small font on a genuinely short window is
+     overlap, and shrinking is the smaller failure. */
+  font-size: clamp(0.5rem, 2vh, 0.82rem);
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: 0.01em;
+  color: rgba(231, 237, 240, 0.74);
+  pointer-events: none;
+  /* Gone by 0.1, not 0.3 like the captions: the top bar sweeps up through this
+     band almost as soon as the tiles start to fly, and a header still legible
+     on top of a moving tile reads as a collision rather than a handoff. */
+  opacity: calc(1 - clamp(0, calc(var(--z) / 0.1), 1));
+}
+
+/* One line once there is room for it: measured at the smallest font this
+   rule allows (12.8px, uppercase, this font stack) the sentence sets at
+   about 695px, so 820px clears it with roughly 45px to spare on each side
+   for the 32px padding — a margin against the metrics differing slightly on
+   a visitor's own installed Helvetica Neue / Segoe UI. Landscape-only: a
+   window this wide but taller than it is wide is still cramped for one
+   line of a sentence this long, so it stays in the wrapped rule above. */
+@media (min-width: 820px) and (min-aspect-ratio: 1/1) {
+  .zoom__lede {
+    max-width: none;
+    /* white-space alone is enough: nowrap forbids wrapping outright, which
+       makes text-wrap (balance, from the rule above) moot — and leaving that
+       declaration in place rather than resetting it dodges a trap in newer
+       CSS, where white-space and text-wrap now share an underlying
+       text-wrap-mode longhand. Setting text-wrap after white-space here
+       would reset that shared value back to "wrap" and silently undo the
+       nowrap this rule exists for. */
+    white-space: nowrap;
+    font-size: clamp(0.8rem, 1.3vw, 1.02rem);
+  }
+}
+
+.zoom__lede strong {
+  font-weight: 600;
+  color: #fff;
+}
+
 /* Captions sit inside their tile, so they travel and grow with it. They
    belong to the gallery reading, so they fade as soon as the tiles start to
    fly — well before a tile grows past the viewport, which would otherwise
-   carry its bottom-anchored caption off the edge mid-sentence. */
+   carry its top-anchored caption off the edge mid-sentence. */
 .zoom__cap {
   width: 100%;
-  padding: 0.6em 0.65em;
-  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.66));
+  /* Right padding wide enough to clear the "+" affordance (22px, inset 7px
+     from this same corner): now that the caption sits at the top instead of
+     the bottom, they share a corner, and the narrowest tiles wrap their
+     company or role onto a line long enough to run under it without this. */
+  padding: 0.6em 34px 0.6em 0.65em;
+  background: linear-gradient(rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0));
   color: #fff;
   font-size: 0.58rem;
   line-height: 1.28;
@@ -715,76 +770,113 @@ button.zoom__tile:focus-visible .zoom__more {
    worked zooms into what he actually does, and this is the frame a scroll
    video would take over.
 
-   20vmax x scale 5 would be exactly 100vmax — the smallest size that covers
-   the viewport in either orientation. Landing exactly on that boundary means
+   --mid x scale 5 would be exactly 100vmax at the landscape figure of 20vmax
+   — the smallest size that covers the viewport in either orientation, and the
+   reason --mid is not free to change alone. Landing exactly on that means
    any sub-pixel rounding (fractional viewport heights, browser zoom) leaves a
    hairline of background at an edge, so the scale carries a little past it
    and over-covers by about 1% instead. */
 .zoom__layer--centre { --s: 5.06; }
 .zoom__layer--centre .zoom__tile {
-  --tw: 20vmax;  --th: 20vmax;
+  --tw: var(--mid);  --th: var(--mid);
   --c: #2f6f8f;
 }
 
 /* The six roles, laid out as a ring that encloses the square rather than two
    plain columns. The most recent role runs as a wide bar across the top,
-   stopping just short of the tile beside it, and Education mirrors it along
-   the bottom; vertical tiles flank the square between them. The offsets are
-   the tile's centre relative to the stage's, so a wide bar sits off-centre.
+   stopping one --gap short of the tile beside it, and Education mirrors it
+   along the bottom; vertical tiles flank the square between them. Every tile
+   is pushed flush against the ring's edge, so all six read as one mosaic with
+   a hairline through it.
+
+   Addressed by type rather than by child index, so the <p> header ahead of
+   them in the stage does not shift the whole ring by one.
 
    A tile leaves frame once its scaled offset clears the edge, and its own
    half-size works against that offset. The two bars are wider than their own
    offset, so they never clear sideways — they leave upward and downward
-   instead, which is what the vertical offsets are sized for. */
-.zoom__layer:nth-child(2) { --s: 5.0; }
-.zoom__layer:nth-child(2) .zoom__tile {
-  --tw: 48vw; --th: 25vh; --tx: -10vw; --ty: -30vh; --c: #7a5d3f;
+   instead, which is what the vertical offsets are sized for.
+
+   That subtraction is what sets each --s. Closing the gaps moved every tile
+   one --gap from the centre square, so the distance any of them has to travel
+   before its near edge passes the viewport edge collapsed to --mid/2 + --gap —
+   the same figure for the bars going up and down as for the flanks going
+   sideways. Left at the old scales the ring lingered past the point the centre
+   tile fills the screen, which reads as the zoom stalling rather than biting,
+   so the scales are set from that distance: enough that every tile is gone by
+   about halfway, in the same stagger as before — bottom bar and small tiles
+   first, flanks last. The small tiles are the exception, still leaving on
+   whichever axis frees them first, so they need the least. */
+.zoom__layer:nth-of-type(2) { --s: 6.4; }
+.zoom__layer:nth-of-type(2) .zoom__tile {
+  --tw: var(--bar-w); --th: var(--row-h);
+  --tx: calc(-1 * var(--bar-x)); --ty: calc(-1 * var(--row-y)); --c: #7a5d3f;
 }
 
-.zoom__layer:nth-child(3) { --s: 5.4; }
-.zoom__layer:nth-child(3) .zoom__tile {
-  --tw: 16vw; --th: 25vh; --tx: 26vw; --ty: -30vh; --c: #3f6b4f;
+.zoom__layer:nth-of-type(3) { --s: 6.1; }
+.zoom__layer:nth-of-type(3) .zoom__tile {
+  --tw: var(--small-w); --th: var(--row-h);
+  --tx: var(--small-x); --ty: calc(-1 * var(--row-y)); --c: #3f6b4f;
 }
 
-.zoom__layer:nth-child(4) { --s: 5.6; }
-.zoom__layer:nth-child(4) .zoom__tile {
-  --tw: 18vw; --th: 30vh; --tx: -25vw; --ty: 0vh; --c: #6b3f52;
+.zoom__layer:nth-of-type(4) { --s: 9.0; }
+.zoom__layer:nth-of-type(4) .zoom__tile {
+  --tw: var(--flank-w); --th: var(--mid);
+  --tx: calc(-1 * var(--flank-x)); --c: #6b3f52;
 }
 
-.zoom__layer:nth-child(5) { --s: 5.9; }
-.zoom__layer:nth-child(5) .zoom__tile {
-  --tw: 18vw; --th: 30vh; --tx: 25vw; --ty: 0vh; --c: #4a4f7a;
+.zoom__layer:nth-of-type(5) { --s: 9.7; }
+.zoom__layer:nth-of-type(5) .zoom__tile {
+  --tw: var(--flank-w); --th: var(--mid);
+  --tx: var(--flank-x); --c: #4a4f7a;
 }
 
-.zoom__layer:nth-child(6) { --s: 6.2; }
-.zoom__layer:nth-child(6) .zoom__tile {
-  --tw: 16vw; --th: 25vh; --tx: -26vw; --ty: 30vh; --c: #7a6a3f;
+.zoom__layer:nth-of-type(6) { --s: 6.9; }
+.zoom__layer:nth-of-type(6) .zoom__tile {
+  --tw: var(--small-w); --th: var(--row-h);
+  --tx: calc(-1 * var(--small-x)); --ty: var(--row-y); --c: #7a6a3f;
 }
 
-.zoom__layer:nth-child(7) { --s: 5.2; }
-.zoom__layer:nth-child(7) .zoom__tile {
-  --tw: 48vw; --th: 25vh; --tx: 10vw; --ty: 30vh; --c: #3f5f6b;
+.zoom__layer:nth-of-type(7) { --s: 6.7; }
+.zoom__layer:nth-of-type(7) .zoom__tile {
+  --tw: var(--bar-w); --th: var(--row-h);
+  --tx: var(--bar-x); --ty: var(--row-y); --c: #3f5f6b;
 }
 
 /* Portrait. --vmax flips from the width to the height here, so at 20vmax the
    centre square would be ~43vw wide on a phone and there would be no room
-   around it. It drops to 14vmax with the scale raised to 7.25, since it still
-   has to reach 100vmax to cover the screen — 14 x 7.25 replaces 20 x 5.06.
+   around it. It drops to 16vmax with the scale raised to 6.35, since it still
+   has to reach 100vmax to cover the screen — 16 x 6.35 replaces 20 x 5.06.
    The same ring, re-proportioned: a phone has height to spare and almost no
-   width, so the bars run nearly edge to edge and the flanking tiles are what
-   gets narrow. */
+   width, so the ring runs nearly edge to edge and takes more of the screen's
+   height, and the tile beside each bar gets a wider share of the row than it
+   can afford on a landscape screen. Every derived figure follows. */
 @media (max-aspect-ratio: 1/1) {
-  .zoom__layer--centre { --s: 7.25; }
-  .zoom__layer--centre .zoom__tile { --tw: 14vmax; --th: 14vmax; }
+  .zoom__stage {
+    --ring-w: 88vw;
+    --ring-h: 71vh;
+    --mid: 16vmax;
+    --small-w: 26vw;
+  }
 
-  .zoom__layer:nth-child(2) .zoom__tile { --tw: 60vw; --th: 19vh; --tx: -14vw; --ty: -26vh; }
-  .zoom__layer:nth-child(3) .zoom__tile { --tw: 24vw; --th: 19vh; --tx: 32vw; --ty: -26vh; }
-  .zoom__layer:nth-child(4) .zoom__tile { --tw: 27vw; --th: 21vh; --tx: -30.5vw; --ty: 0vh; }
-  .zoom__layer:nth-child(5) .zoom__tile { --tw: 27vw; --th: 21vh; --tx: 30.5vw; --ty: 0vh; }
-  .zoom__layer:nth-child(6) .zoom__tile { --tw: 24vw; --th: 19vh; --tx: -32vw; --ty: 26vh; }
-  .zoom__layer:nth-child(7) .zoom__tile { --tw: 60vw; --th: 19vh; --tx: 14vw; --ty: 26vh; }
+  .zoom__layer--centre { --s: 6.35; }
 
-  .zoom__cap { font-size: 0.52rem; padding: 0.5em 0.55em; }
+  /* The bars are the one pair the orientation changes the answer for. They
+     leave vertically, over --mid/2 + --gap — and --mid is a fraction of the
+     height here rather than of the width, so that distance is barely a third
+     of what it is in landscape while the height they must clear is unchanged.
+     Only more scale closes it. The other four leave sideways, where portrait
+     is if anything the easier case, so they keep the landscape figures. */
+  .zoom__layer:nth-of-type(2) { --s: 10.8; }
+  .zoom__layer:nth-of-type(7) { --s: 11.4; }
+
+  .zoom__cap { font-size: 0.52rem; padding: 0.5em 30px 0.5em 0.55em; }
+
+  /* The ring is 71vh here rather than 85vh, so the header's band is nearly
+     twice as deep — enough to sit it off the top edge. Portrait never has
+     the width for one line at this sentence length, so it stays on the
+     wrapped rule and only the vertical offset needs adjusting here. */
+  .zoom__lede { padding-top: 4vh; }
 }
 
 /* -------------------------------------------------------------------------
@@ -928,17 +1020,15 @@ button.zoom__tile:focus-visible .zoom__more {
   </div>
 </div>
 
-<section class="intro">
-  <p>15+ years turning ambiguous problems into time tested systems at
-     <strong>Microsoft</strong> and <strong>Starbucks</strong>.</p>
-</section>
-
-<!-- Zoom parallax. The centre tile is the skills panel — the gallery of
-     companies zooms into what he actually does — and it is the frame a scroll
-     video is meant to take over, so it is not a control. The six around it are
-     the roles, most recent top-left, reading down each column. -->
+<!-- Zoom parallax, headed by the value proposition. The centre tile is the
+     skills panel — the gallery of companies zooms into what he actually does —
+     and it is the frame a scroll video is meant to take over, so it is not a
+     control. The six around it are the roles, most recent top-left, reading
+     down each column. -->
 <div class="zoom" id="zoom">
   <div class="zoom__stage">
+    <p class="zoom__lede">15+ years turning ambiguous problems into time tested systems at
+       <strong>Microsoft</strong> and <strong>Starbucks</strong>.</p>
     <div class="zoom__layer zoom__layer--centre">
       <!-- No caption: the image or video that goes here carries the word. -->
       <div class="zoom__tile"></div>
