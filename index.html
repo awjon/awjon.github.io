@@ -454,7 +454,7 @@ body {
   width: var(--tw);
   height: var(--th);
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   overflow: hidden;
   background: var(--c);
   border-radius: 2px;
@@ -537,11 +537,15 @@ body {
 /* Captions sit inside their tile, so they travel and grow with it. They
    belong to the gallery reading, so they fade as soon as the tiles start to
    fly — well before a tile grows past the viewport, which would otherwise
-   carry its bottom-anchored caption off the edge mid-sentence. */
+   carry its top-anchored caption off the edge mid-sentence. */
 .zoom__cap {
   width: 100%;
-  padding: 0.6em 0.65em;
-  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.66));
+  /* Right padding wide enough to clear the "+" affordance (22px, inset 7px
+     from this same corner): now that the caption sits at the top instead of
+     the bottom, they share a corner, and the narrowest tiles wrap their
+     company or role onto a line long enough to run under it without this. */
+  padding: 0.6em 34px 0.6em 0.65em;
+  background: linear-gradient(rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0));
   color: #fff;
   font-size: 0.58rem;
   line-height: 1.28;
@@ -866,7 +870,7 @@ button.zoom__tile:focus-visible .zoom__more {
   .zoom__layer:nth-of-type(2) { --s: 10.8; }
   .zoom__layer:nth-of-type(7) { --s: 11.4; }
 
-  .zoom__cap { font-size: 0.52rem; padding: 0.5em 0.55em; }
+  .zoom__cap { font-size: 0.52rem; padding: 0.5em 30px 0.5em 0.55em; }
 
   /* The ring is 71vh here rather than 85vh, so the header's band is nearly
      twice as deep — enough to sit it off the top edge. Portrait never has
