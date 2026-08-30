@@ -141,12 +141,15 @@ body {
   --dy-back:   -4vh;   --dz-back:  0.05;
   --dy-mid:   -18vh;   --dz-mid:   0.03;
   --dy-name:  -22vh;
-  /* The foreground is the fastest plane, as in the reference: it travels a
-     full image-height over the pin range, so the picture is read from the
-     heads down to the grass as you scroll and the family rushes up past
-     the camera. Stated in terms of --front-h rather than vh so the whole
-     photo passes through frame on any screen shape. */
-  --dy-front: calc(-0.8 * var(--front-h));   --dz-front: 0.06;
+  /* The foreground is the fastest plane, as in the reference: it travels
+     half an image-height over the pin range, so the family visibly rushes
+     up past the camera while the photo's own bottom edge stays just past
+     the fold at rest — which is what keeps the flat page-bg fill below it
+     (the ::after two rules down) to a sliver instead of a growing void by
+     the end of the scroll. Stated in terms of --front-h rather than vh so
+     the travel — and the fill it exposes — scales the same way on any
+     screen shape. */
+  --dy-front: calc(-0.5 * var(--front-h));   --dz-front: 0.06;
 }
 
 .hero__stage {
@@ -468,26 +471,62 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  /* The ring is 85vh of a 100vh stage, so the top row begins 7.5vh down and
-     the header has that band and no more: sized to hold to two lines in it. */
   margin: 0 auto;
-  padding: 1.5vh 0 0;
-  /* Measure, not gutter: box-sizing is border-box here, so keeping the side
-     space out of the padding is what holds the line to two lines rather than
-     three on a wide screen. */
-  max-width: min(66ch, 88vw);
+  padding: 1.5vh 32px 0;
+  /* Wraps by default — this is the safe fallback, not just the phone case:
+     any window narrower than the breakpoint below lands here too. Balanced
+     rather than a ragged one-word orphan on the second line. A vw figure,
+     not ch: ch scales with the font-size right above, and on the shortest
+     windows that size is already shrinking to protect the tiles below —
+     a ch cap would then narrow in lockstep and force a third line exactly
+     where there is the least height to spare for one. */
+  max-width: 90vw;
   text-align: center;
-  font-size: clamp(0.8rem, 1.3vw, 1.02rem);
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.005em;
-  color: rgba(231, 237, 240, 0.74);
+  text-transform: uppercase;
+  white-space: normal;
   text-wrap: balance;
+  /* vh-driven, not vw: in landscape shape (the portrait override below
+     replaces this) the header's whole budget is the 6vh left once the top
+     row's own 7.5vh start gives back this rule's 1.5vh of padding, and
+     that budget is fixed in height regardless of how wide the window is.
+     Sized in vw instead, a wide-but-short window (a resized laptop
+     window, a small phone on its side) would happily grow the font right
+     up to the point the second line runs into the tiles. 2.1vh keeps two
+     lines at this line-height under 6vh with a little to spare; no floor,
+     because the alternative to a small font on a genuinely short window is
+     overlap, and shrinking is the smaller failure. */
+  font-size: clamp(0.5rem, 2vh, 0.82rem);
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: 0.01em;
+  color: rgba(231, 237, 240, 0.74);
   pointer-events: none;
   /* Gone by 0.1, not 0.3 like the captions: the top bar sweeps up through this
      band almost as soon as the tiles start to fly, and a header still legible
      on top of a moving tile reads as a collision rather than a handoff. */
   opacity: calc(1 - clamp(0, calc(var(--z) / 0.1), 1));
+}
+
+/* One line once there is room for it: measured at the smallest font this
+   rule allows (12.8px, uppercase, this font stack) the sentence sets at
+   about 695px, so 820px clears it with roughly 45px to spare on each side
+   for the 32px padding — a margin against the metrics differing slightly on
+   a visitor's own installed Helvetica Neue / Segoe UI. Landscape-only: a
+   window this wide but taller than it is wide is still cramped for one
+   line of a sentence this long, so it stays in the wrapped rule above. */
+@media (min-width: 820px) and (min-aspect-ratio: 1/1) {
+  .zoom__lede {
+    max-width: none;
+    /* white-space alone is enough: nowrap forbids wrapping outright, which
+       makes text-wrap (balance, from the rule above) moot — and leaving that
+       declaration in place rather than resetting it dodges a trap in newer
+       CSS, where white-space and text-wrap now share an underlying
+       text-wrap-mode longhand. Setting text-wrap after white-space here
+       would reset that shared value back to "wrap" and silently undo the
+       nowrap this rule exists for. */
+    white-space: nowrap;
+    font-size: clamp(0.8rem, 1.3vw, 1.02rem);
+  }
 }
 
 .zoom__lede strong {
@@ -830,9 +869,10 @@ button.zoom__tile:focus-visible .zoom__more {
   .zoom__cap { font-size: 0.52rem; padding: 0.5em 0.55em; }
 
   /* The ring is 71vh here rather than 85vh, so the header's band is nearly
-     twice as deep — enough to sit it off the top edge and give it a little
-     more size than the width alone would allow. */
-  .zoom__lede { padding-top: 4vh; font-size: 0.86rem; }
+     twice as deep — enough to sit it off the top edge. Portrait never has
+     the width for one line at this sentence length, so it stays on the
+     wrapped rule and only the vertical offset needs adjusting here. */
+  .zoom__lede { padding-top: 4vh; }
 }
 
 /* -------------------------------------------------------------------------
