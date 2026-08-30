@@ -416,11 +416,22 @@ body {
      figure while everything around it is in vh. So the square, not a vh
      number, has to set the middle row's height — otherwise the gap above and
      below it drifts with the window's aspect ratio, which is exactly what a
-     5px gap cannot afford. */
+     5px gap cannot afford.
+
+     svh/svmax, not vh/vmax: this stage's own height is pinned to the small
+     viewport two lines up, and a mobile browser's large and small viewports
+     differ by however tall its address bar is. Sized in plain vh, the ring
+     would be laid out against a viewport taller than the box actually
+     rendered at — everything in it a little bigger than its 1% share of the
+     real box — with nowhere for the surplus to go but into the header's
+     band above the top row, which is exactly the seam a few percent of
+     error lands in. Headless testing never catches this: without real
+     browser chrome to show or hide, a headless viewport's large and small
+     values are identical. */
   --gap: 5px;
   --ring-w: 68vw;
-  --ring-h: 85vh;
-  --mid: 20vmax;
+  --ring-h: 85svh;
+  --mid: 20svmax;
   --small-w: 18vw;
 
   /* Everything else falls out of those five. */
@@ -472,7 +483,7 @@ body {
   left: 0;
   right: 0;
   margin: 0 auto;
-  padding: 1.5vh 32px 0;
+  padding: 1.5svh 32px 0;
   /* Wraps by default — this is the safe fallback, not just the phone case:
      any window narrower than the breakpoint below lands here too. Balanced
      rather than a ragged one-word orphan on the second line. A vw figure,
@@ -485,17 +496,21 @@ body {
   text-transform: uppercase;
   white-space: normal;
   text-wrap: balance;
-  /* vh-driven, not vw: in landscape shape (the portrait override below
-     replaces this) the header's whole budget is the 6vh left once the top
-     row's own 7.5vh start gives back this rule's 1.5vh of padding, and
+  /* svh-driven, not vw: in landscape shape (the portrait override below
+     replaces this) the header's whole budget is the 6svh left once the top
+     row's own 7.5svh start gives back this rule's 1.5svh of padding, and
      that budget is fixed in height regardless of how wide the window is.
      Sized in vw instead, a wide-but-short window (a resized laptop
      window, a small phone on its side) would happily grow the font right
-     up to the point the second line runs into the tiles. 2.1vh keeps two
-     lines at this line-height under 6vh with a little to spare; no floor,
-     because the alternative to a small font on a genuinely short window is
+     up to the point the second line runs into the tiles. svh rather than
+     vh for the same reason the ring tokens above switched: on a real phone
+     the two differ by the address bar's height, and plain vh would size
+     the font — and thus how many lines it needs — against a viewport
+     taller than the box it actually has to fit in. 2svh keeps two lines at
+     this line-height under 6svh with a little to spare; no floor, because
+     the alternative to a small font on a genuinely short window is
      overlap, and shrinking is the smaller failure. */
-  font-size: clamp(0.5rem, 2vh, 0.82rem);
+  font-size: clamp(0.5rem, 2svh, 0.82rem);
   font-weight: 600;
   line-height: 1.32;
   letter-spacing: 0.01em;
@@ -567,7 +582,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 7vw 8vh;
+  padding: 0 7vw 8svh;
   text-align: center;
   color: #fff;
   pointer-events: none;
@@ -854,8 +869,8 @@ button.zoom__tile:focus-visible .zoom__more {
 @media (max-aspect-ratio: 1/1) {
   .zoom__stage {
     --ring-w: 88vw;
-    --ring-h: 71vh;
-    --mid: 16vmax;
+    --ring-h: 71svh;
+    --mid: 16svmax;
     --small-w: 26vw;
   }
 
@@ -872,11 +887,11 @@ button.zoom__tile:focus-visible .zoom__more {
 
   .zoom__cap { font-size: 0.52rem; padding: 0.5em 30px 0.5em 0.55em; }
 
-  /* The ring is 71vh here rather than 85vh, so the header's band is nearly
+  /* The ring is 71svh here rather than 85svh, so the header's band is nearly
      twice as deep — enough to sit it off the top edge. Portrait never has
      the width for one line at this sentence length, so it stays on the
      wrapped rule and only the vertical offset needs adjusting here. */
-  .zoom__lede { padding-top: 4vh; }
+  .zoom__lede { padding-top: 4svh; }
 }
 
 /* -------------------------------------------------------------------------
