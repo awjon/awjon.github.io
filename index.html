@@ -344,61 +344,8 @@ body {
 }
 
 /* =========================================================================
-   Below the hero — the value proposition, then the zoom parallax.
+   Below the hero — the zoom parallax, headed by the value proposition.
    ========================================================================= */
-
-/* The one-liner that opens the section. */
-.intro {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  min-height: 60svh;
-  padding: 14vh 7vw;
-  background: var(--bg);
-  overflow: hidden;
-}
-
-/* Radial spotlight behind the line, as in the reference. Barely there —
-   just enough to lift the type off a flat black field. */
-.intro::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: 50%;
-  width: 120vmin;
-  height: 120vmin;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(231, 237, 240, 0.11),
-    rgba(231, 237, 240, 0) 50%
-  );
-  filter: blur(30px);
-  pointer-events: none;
-}
-
-.intro p {
-  position: relative;
-  margin: 0;
-  /* Wide enough that the sentence lands in two or three lines and still
-     reads as one statement, rather than stacking into a tall block. */
-  max-width: 34ch;
-  text-align: center;
-  font-size: clamp(1.3rem, 3.1vw, 2.7rem);
-  font-weight: 600;
-  line-height: 1.18;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  text-wrap: balance;
-}
-
-.intro strong {
-  font-weight: 600;
-  color: #fff;
-}
 
 /* -------------------------------------------------------------------------
    Zoom parallax.
@@ -481,6 +428,44 @@ body {
   overflow: hidden;
   background: var(--c);
   border-radius: 2px;
+}
+
+/* The value proposition, now the gallery's header rather than a screen of its
+   own. It sits in the band above the top row of tiles — inside the sticky
+   stage, so it is on screen while the tiles are still a gallery — and hands
+   off the moment they start to fly, since from there the reader is inside the
+   zoom rather than reading the frame. */
+.zoom__lede {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* The top row's tiles begin 7.5vh down (25vh tall, centred 30vh high), so
+     the header has that band and no more: sized to hold to two lines in it. */
+  margin: 0 auto;
+  padding: 1.5vh 0 0;
+  /* Measure, not gutter: box-sizing is border-box here, so keeping the side
+     space out of the padding is what holds the line to two lines rather than
+     three on a wide screen. */
+  max-width: min(66ch, 88vw);
+  text-align: center;
+  font-size: clamp(0.8rem, 1.3vw, 1.02rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  color: rgba(231, 237, 240, 0.74);
+  text-wrap: balance;
+  pointer-events: none;
+  /* Gone by 0.1, not 0.3 like the captions: the top bar sweeps up through this
+     band almost as soon as the tiles start to fly, and a header still legible
+     on top of a moving tile reads as a collision rather than a handoff. */
+  opacity: calc(1 - clamp(0, calc(var(--z) / 0.1), 1));
+}
+
+.zoom__lede strong {
+  font-weight: 600;
+  color: #fff;
 }
 
 /* Captions sit inside their tile, so they travel and grow with it. They
@@ -729,40 +714,43 @@ button.zoom__tile:focus-visible .zoom__more {
 /* The six roles, laid out as a ring that encloses the square rather than two
    plain columns. The most recent role runs as a wide bar across the top,
    stopping just short of the tile beside it, and Education mirrors it along
-   the bottom; vertical tiles flank the square between them. The offsets are
+   the bottom; vertical tiles flank the square between them.
+
+   Addressed by type rather than by child index, so the <p> header ahead of
+   them in the stage does not shift the whole ring by one. The offsets are
    the tile's centre relative to the stage's, so a wide bar sits off-centre.
 
    A tile leaves frame once its scaled offset clears the edge, and its own
    half-size works against that offset. The two bars are wider than their own
    offset, so they never clear sideways — they leave upward and downward
    instead, which is what the vertical offsets are sized for. */
-.zoom__layer:nth-child(2) { --s: 5.0; }
-.zoom__layer:nth-child(2) .zoom__tile {
+.zoom__layer:nth-of-type(2) { --s: 5.0; }
+.zoom__layer:nth-of-type(2) .zoom__tile {
   --tw: 48vw; --th: 25vh; --tx: -10vw; --ty: -30vh; --c: #7a5d3f;
 }
 
-.zoom__layer:nth-child(3) { --s: 5.4; }
-.zoom__layer:nth-child(3) .zoom__tile {
+.zoom__layer:nth-of-type(3) { --s: 5.4; }
+.zoom__layer:nth-of-type(3) .zoom__tile {
   --tw: 16vw; --th: 25vh; --tx: 26vw; --ty: -30vh; --c: #3f6b4f;
 }
 
-.zoom__layer:nth-child(4) { --s: 5.6; }
-.zoom__layer:nth-child(4) .zoom__tile {
+.zoom__layer:nth-of-type(4) { --s: 5.6; }
+.zoom__layer:nth-of-type(4) .zoom__tile {
   --tw: 18vw; --th: 30vh; --tx: -25vw; --ty: 0vh; --c: #6b3f52;
 }
 
-.zoom__layer:nth-child(5) { --s: 5.9; }
-.zoom__layer:nth-child(5) .zoom__tile {
+.zoom__layer:nth-of-type(5) { --s: 5.9; }
+.zoom__layer:nth-of-type(5) .zoom__tile {
   --tw: 18vw; --th: 30vh; --tx: 25vw; --ty: 0vh; --c: #4a4f7a;
 }
 
-.zoom__layer:nth-child(6) { --s: 6.2; }
-.zoom__layer:nth-child(6) .zoom__tile {
+.zoom__layer:nth-of-type(6) { --s: 6.2; }
+.zoom__layer:nth-of-type(6) .zoom__tile {
   --tw: 16vw; --th: 25vh; --tx: -26vw; --ty: 30vh; --c: #7a6a3f;
 }
 
-.zoom__layer:nth-child(7) { --s: 5.2; }
-.zoom__layer:nth-child(7) .zoom__tile {
+.zoom__layer:nth-of-type(7) { --s: 5.2; }
+.zoom__layer:nth-of-type(7) .zoom__tile {
   --tw: 48vw; --th: 25vh; --tx: 10vw; --ty: 30vh; --c: #3f5f6b;
 }
 
@@ -777,14 +765,19 @@ button.zoom__tile:focus-visible .zoom__more {
   .zoom__layer--centre { --s: 7.25; }
   .zoom__layer--centre .zoom__tile { --tw: 14vmax; --th: 14vmax; }
 
-  .zoom__layer:nth-child(2) .zoom__tile { --tw: 60vw; --th: 19vh; --tx: -14vw; --ty: -26vh; }
-  .zoom__layer:nth-child(3) .zoom__tile { --tw: 24vw; --th: 19vh; --tx: 32vw; --ty: -26vh; }
-  .zoom__layer:nth-child(4) .zoom__tile { --tw: 27vw; --th: 21vh; --tx: -30.5vw; --ty: 0vh; }
-  .zoom__layer:nth-child(5) .zoom__tile { --tw: 27vw; --th: 21vh; --tx: 30.5vw; --ty: 0vh; }
-  .zoom__layer:nth-child(6) .zoom__tile { --tw: 24vw; --th: 19vh; --tx: -32vw; --ty: 26vh; }
-  .zoom__layer:nth-child(7) .zoom__tile { --tw: 60vw; --th: 19vh; --tx: 14vw; --ty: 26vh; }
+  .zoom__layer:nth-of-type(2) .zoom__tile { --tw: 60vw; --th: 19vh; --tx: -14vw; --ty: -26vh; }
+  .zoom__layer:nth-of-type(3) .zoom__tile { --tw: 24vw; --th: 19vh; --tx: 32vw; --ty: -26vh; }
+  .zoom__layer:nth-of-type(4) .zoom__tile { --tw: 27vw; --th: 21vh; --tx: -30.5vw; --ty: 0vh; }
+  .zoom__layer:nth-of-type(5) .zoom__tile { --tw: 27vw; --th: 21vh; --tx: 30.5vw; --ty: 0vh; }
+  .zoom__layer:nth-of-type(6) .zoom__tile { --tw: 24vw; --th: 19vh; --tx: -32vw; --ty: 26vh; }
+  .zoom__layer:nth-of-type(7) .zoom__tile { --tw: 60vw; --th: 19vh; --tx: 14vw; --ty: 26vh; }
 
   .zoom__cap { font-size: 0.52rem; padding: 0.5em 0.55em; }
+
+  /* The bars sit lower here (26vh, 19vh tall), so the header's band is nearly
+     twice as deep — enough to sit it off the top edge and give it a little
+     more size than the width alone would allow. */
+  .zoom__lede { padding-top: 4vh; font-size: 0.86rem; }
 }
 
 /* -------------------------------------------------------------------------
@@ -928,17 +921,15 @@ button.zoom__tile:focus-visible .zoom__more {
   </div>
 </div>
 
-<section class="intro">
-  <p>15+ years turning ambiguous problems into time tested systems at
-     <strong>Microsoft</strong> and <strong>Starbucks</strong>.</p>
-</section>
-
-<!-- Zoom parallax. The centre tile is the skills panel — the gallery of
-     companies zooms into what he actually does — and it is the frame a scroll
-     video is meant to take over, so it is not a control. The six around it are
-     the roles, most recent top-left, reading down each column. -->
+<!-- Zoom parallax, headed by the value proposition. The centre tile is the
+     skills panel — the gallery of companies zooms into what he actually does —
+     and it is the frame a scroll video is meant to take over, so it is not a
+     control. The six around it are the roles, most recent top-left, reading
+     down each column. -->
 <div class="zoom" id="zoom">
   <div class="zoom__stage">
+    <p class="zoom__lede">15+ years turning ambiguous problems into time tested systems at
+       <strong>Microsoft</strong> and <strong>Starbucks</strong>.</p>
     <div class="zoom__layer zoom__layer--centre">
       <!-- No caption: the image or video that goes here carries the word. -->
       <div class="zoom__tile"></div>
