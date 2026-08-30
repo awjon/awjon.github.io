@@ -359,14 +359,41 @@ body {
    tile — the only one with no offset — simply grows in place. That single
    difference is the whole effect.
 
-   The centre tile is square at 25vmax and its layer scales to exactly 4, so
-   it finishes at 100vmax: the smallest size that covers the viewport on
-   either orientation. The pin ends on that frame, so scrolling stops with
-   the most recent role filling the screen.
+   The centre tile is the exception twice over: it is the only one with no
+   offset, so it grows in place rather than rushing out, and it is the only one
+   that changes shape — from the square it has to be while it is part of the
+   mosaic to the viewport it has to be to hold a 16:9 video. It carries a still
+   of the desk until halfway, then hands over to the scroll-scrubbed flight
+   into the monitor, which plays on long after the camera move has landed.
    ------------------------------------------------------------------------- */
 
-/* Progress through the zoom, 0 → 1, on the same pattern as the hero's --p. */
+/* Two progress values run over the one pin, on the same pattern as the hero's
+   --p, and they deliberately overlap.
+
+   --z is the camera move: the six roles fly out and the centre tile grows from
+   a square in the mosaic to the whole viewport. It finishes a long way before
+   the pin does.
+
+   --v is the video's own timeline. It starts halfway through --z — the seam,
+   where the still hands over — and runs to the very end of the pin. So the
+   flight into the screen is still climbing out of the mosaic when the video
+   starts, reaches full bleed about a quarter of the way through the footage,
+   and then plays out the remaining three quarters full screen while the reader
+   keeps scrolling.
+
+   The two figures below are the only knobs. ZOOM_END is where --z lands and
+   SEAM is where --v starts, both as a fraction of the pin; they are repeated
+   verbatim in the two scripts at the foot of the document, which have to agree
+   with them. At 600vh the pin is 500vh, so --z owns the first 200vh (exactly
+   the run it had before this video existed, so the gallery reads unchanged)
+   and the video scrubs across the 400vh from the seam to the end. */
 @property --z {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --v {
   syntax: "<number>";
   inherits: true;
   initial-value: 0;
@@ -377,25 +404,34 @@ body {
   to   { --z: 1; }
 }
 
+@keyframes video-progress {
+  from { --v: 0; }
+  to   { --v: 1; }
+}
+
 .zoom {
   position: relative;
   /* Pin length: the stage sticks for height − 100vh of scrolling. */
-  height: 300vh;
-  height: 300svh;
+  height: 600vh;
+  height: 600svh;
   background: var(--bg);
 }
 
 /* `contain` is the range in which a subject taller than the viewport
    completely fills it — precisely the span over which the stage is stuck,
-   and the equivalent of the reference's start-start → end-end offsets. */
+   and the equivalent of the reference's start-start → end-end offsets. Both
+   animations ride it; only their ranges differ. `animation-fill-mode: both` is
+   what holds --z at 1 for the whole stretch of pin past ZOOM_END, so the frame
+   simply stays full-bleed while the video plays on. */
 @supports (animation-timeline: view()) {
   .zoom {
-    animation-name: zoom-progress;
-    animation-duration: auto;
-    animation-timing-function: linear;
-    animation-fill-mode: both;
-    animation-timeline: view();
-    animation-range: contain 0% contain 100%;
+    animation-name: zoom-progress, video-progress;
+    animation-duration: auto, auto;
+    animation-timing-function: linear, linear;
+    animation-fill-mode: both, both;
+    animation-timeline: view(), view();
+    animation-range: contain 0% contain 40%,     /* ZOOM_END */
+                     contain 20% contain 100%;   /* SEAM */
   }
 }
 
@@ -453,11 +489,54 @@ body {
   left: var(--tx, 0vw);
   width: var(--tw);
   height: var(--th);
+  /* The layer is a flex container only to centre this, and a flex item is
+     free to shrink below the width asked of it. That never came up while
+     every tile was smaller than the stage and grew by transform, but the
+     centre tile now grows by width — past the stage, in portrait, well before
+     it lands — and would be quietly squeezed back to the viewport, arriving
+     as a rectangle at the seam instead of the square the mosaic needs. */
+  flex: none;
   display: flex;
   align-items: flex-start;
   overflow: hidden;
   background: var(--c);
   border-radius: 2px;
+}
+
+/* The screen itself. The still and the video are the same photograph: the
+   video opens on the vertically-centred 16:9 crop of monitorblank.jpeg, which
+   is what assets/monitorstill.jpg is — checked by edge correlation, the two
+   register to within compression noise everywhere outside the monitor's own
+   glass. Both are 1280x720, so `cover` in the same box crops them identically
+   and not a pixel of the desk moves at the handoff. The only thing that
+   changes is the screen, from off to the SKILL.md desktop, which is exactly
+   the beat the crossfade below is for.
+   ------------------------------------------------------------------------- */
+.zoom__screen {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+/* The video stays hidden until a frame of it is actually decodable, so a slow
+   connection shows the still held correctly rather than a black rectangle —
+   and so a visitor with no script at all (this page is built to survive being
+   opened from a phone's Downloads) gets the still, full bleed, instead of a
+   video frozen on frame one. The class comes from the scrubber at the foot of
+   the document.
+
+   The fade is deliberately narrow and sits just past the seam: across it the
+   video is still inside its first fifth of a second, close enough to frame one
+   that the dissolve has nothing to reconcile but the monitor coming on. Wider
+   would only hold a moving image over a static one for longer. */
+.zoom__screen--vid { opacity: 0; }
+
+.zoom.is-vid-ready .zoom__screen--vid {
+  opacity: clamp(0, calc((var(--z) - 0.5) / 0.04), 1);
 }
 
 /* The value proposition, now the gallery's header rather than a screen of its
@@ -560,7 +639,13 @@ body {
 
 /* What the final frame says. The centre tile's own caption is far below the
    fold once it fills the screen, so the role is restated here — outside any
-   scaled layer, at a readable size — arriving as the zoom lands. */
+   scaled layer, at a readable size — arriving as the zoom lands.
+
+   And then leaving. It is the caption for an arrival, and the arrival is over
+   by --v 0.25; holding it there would paste a static line across the whole
+   remaining flight into the screen. So it fades in on --z as it always did,
+   holds while the frame settles, and is gone by --v 0.4 — with three fifths of
+   the footage still to run, unobstructed. */
 .zoom__focus {
   position: absolute;
   z-index: 2;
@@ -571,7 +656,8 @@ body {
   text-align: center;
   color: #fff;
   pointer-events: none;
-  opacity: clamp(0, calc((var(--z) - 0.55) / 0.4), 1);
+  opacity: calc(clamp(0, calc((var(--z) - 0.55) / 0.4), 1) *
+                (1 - clamp(0, calc((var(--v) - 0.28) / 0.12), 1)));
 }
 
 .zoom__focus span {
@@ -766,20 +852,47 @@ button.zoom__tile:focus-visible .zoom__more {
 .zoom__cap .yr   { font-weight: 500; opacity: 0.55; font-variant-numeric: tabular-nums; }
 
 /* The centre tile: square, no offset, and the one that fills the screen. It
-   is the skills panel now rather than a role — the gallery of where he has
-   worked zooms into what he actually does, and this is the frame a scroll
-   video would take over.
+   is the skills panel — the gallery of where he has worked zooms into what he
+   actually does — and it is the frame the scroll video takes over.
 
-   --mid x scale 5 would be exactly 100vmax at the landscape figure of 20vmax
-   — the smallest size that covers the viewport in either orientation, and the
-   reason --mid is not free to change alone. Landing exactly on that means
-   any sub-pixel rounding (fractional viewport heights, browser zoom) leaves a
-   hairline of background at an edge, so the scale carries a little past it
-   and over-covers by about 1% instead. */
-.zoom__layer--centre { --s: 5.06; }
+   It is the one tile that does NOT ride its layer's transform, because it is
+   the one tile whose SHAPE has to change. Everything else here is a square
+   growing uniformly, which a scale() does perfectly; this one has to arrive as
+   the viewport, and a 16:9 video inside a square at full size would show only
+   the middle 56% of it, losing better than a fifth of the frame off each
+   side — the Windows logo among it. So the layer's
+   scale is pinned at 1 and the tile sizes itself in two straight segments:
+
+     0 → 0.5   square, growing at exactly the rate --centre-s used to give it,
+               so while it is still one tile in a mosaic it reads as it always
+               did — and the still it carries is cropped square along with it.
+     0.5 → 1   width and height part company and lerp to the viewport, so the
+               frame opens out to the full 16:9 as the flight bites.
+
+   --centre-s is therefore no longer "the scale that reaches 100vmax"; it only
+   sets the first segment's rate, and half of it is the square's size at the
+   seam (3.03 x --mid in landscape, unchanged from before). The 2px over-run on
+   the final size is the same guard the old 5.06 carried: landing exactly on
+   the viewport means any sub-pixel rounding (fractional viewport heights,
+   browser zoom) leaves a hairline of background at an edge. The 100% it lerps
+   towards is the layer, which is inset:0 on the stage — the stage's own box
+   rather than 100vw, which on a desktop scrollbar would be a gutter wider. */
+.zoom__layer--centre {
+  --s: 1;
+  --centre-s: 5.06;
+}
+
 .zoom__layer--centre .zoom__tile {
-  --tw: var(--mid);  --th: var(--mid);
-  --c: #2f6f8f;
+  /* 1 → --centre-s/2 + 0.5 over the first half, then held. */
+  --grow: calc(1 + clamp(0, calc(var(--z) / 0.5), 1) * (var(--centre-s) - 1) * 0.5);
+  --side: calc(var(--mid) * var(--grow));
+  /* 0 until the seam, then 0 → 1: the shape change, and nothing else. */
+  --morph: clamp(0, calc((var(--z) - 0.5) / 0.5), 1);
+  --tw: calc(var(--side) + var(--morph) * (100% + 2px - var(--side)));
+  --th: calc(var(--side) + var(--morph) * (100% + 2px - var(--side)));
+  /* The page background, not a swatch: once the tile is the viewport any
+     sliver of its own colour at an edge would read as a seam. */
+  --c: var(--bg);
 }
 
 /* The six roles, laid out as a ring that encloses the square rather than two
@@ -845,8 +958,10 @@ button.zoom__tile:focus-visible .zoom__more {
 
 /* Portrait. --vmax flips from the width to the height here, so at 20vmax the
    centre square would be ~43vw wide on a phone and there would be no room
-   around it. It drops to 16vmax with the scale raised to 6.35, since it still
-   has to reach 100vmax to cover the screen — 16 x 6.35 replaces 20 x 5.06.
+   around it. It drops to 16vmax with --centre-s raised to 6.35, which keeps
+   the square's size at the seam in proportion — 16 x 6.35 replaces 20 x 5.06.
+   Where it lands is set by the viewport now, not by that figure, so only the
+   first half's rate is in question here.
    The same ring, re-proportioned: a phone has height to spare and almost no
    width, so the ring runs nearly edge to edge and takes more of the screen's
    height, and the tile beside each bar gets a wider share of the row than it
@@ -859,7 +974,7 @@ button.zoom__tile:focus-visible .zoom__more {
     --small-w: 26vw;
   }
 
-  .zoom__layer--centre { --s: 6.35; }
+  .zoom__layer--centre { --centre-s: 6.35; }
 
   /* The bars are the one pair the orientation changes the answer for. They
      leave vertically, over --mid/2 + --gap — and --mid is a fraction of the
@@ -1022,16 +1137,28 @@ button.zoom__tile:focus-visible .zoom__more {
 
 <!-- Zoom parallax, headed by the value proposition. The centre tile is the
      skills panel — the gallery of companies zooms into what he actually does —
-     and it is the frame a scroll video is meant to take over, so it is not a
-     control. The six around it are the roles, most recent top-left, reading
-     down each column. -->
+     and it is the frame the scroll video takes over, so it is not a control.
+     The six around it are the roles, most recent top-left, reading down each
+     column. -->
 <div class="zoom" id="zoom">
   <div class="zoom__stage">
     <p class="zoom__lede">15+ years turning ambiguous problems into time tested systems at
        <strong>Microsoft</strong> and <strong>Starbucks</strong>.</p>
     <div class="zoom__layer zoom__layer--centre">
-      <!-- No caption: the image or video that goes here carries the word. -->
-      <div class="zoom__tile"></div>
+      <!-- No caption: the picture carries the word. The still is the video's
+           own opening framing with the monitor dark, so the two stack in one
+           box and the handoff is a dissolve on the screen alone.
+
+           preload="metadata" only: this is 4MB sitting three viewports down,
+           and the hero should not be waiting on it. The scrubber at the foot
+           of the document pulls the rest as the section comes into range. -->
+      <div class="zoom__tile">
+        <img class="zoom__screen" src="assets/monitorstill.jpg" decoding="async"
+             alt="A desk under a wall-mounted lamp: a wide monitor, a mechanical keyboard on a walnut rest, a phone and two plants.">
+        <video class="zoom__screen zoom__screen--vid" id="zoom-vid"
+               src="assets/monitorzoom.mp4" preload="metadata"
+               muted playsinline disablepictureinpicture aria-hidden="true"></video>
+      </div>
     </div>
     <div class="zoom__layer">
       <button class="zoom__tile" type="button" data-role="msrc"
@@ -1237,10 +1364,20 @@ button.zoom__tile:focus-visible .zoom__more {
     return v < 0 ? 0 : v > 1 ? 1 : v;
   }
 
+  // The two knobs from the @supports block up in the stylesheet. --z is done
+  // by ZOOM_END of the pin; --v runs from SEAM to the end of it.
+  var ZOOM_END = 0.40;
+  var SEAM     = 0.20;
+
   function render() {
     queued = false;
     root.style.setProperty('--p', pin(hero, span).toFixed(4));
-    root.style.setProperty('--z', pin(zoom, zoomSpan).toFixed(4));
+
+    var t = pin(zoom, zoomSpan);
+    var z = t / ZOOM_END;
+    var v = (t - SEAM) / (1 - SEAM);
+    root.style.setProperty('--z', (z > 1 ? 1 : z).toFixed(4));
+    root.style.setProperty('--v', (v < 0 ? 0 : v > 1 ? 1 : v).toFixed(4));
   }
 
   function onScroll() {
@@ -1259,6 +1396,160 @@ button.zoom__tile:focus-visible .zoom__more {
     visualViewport.addEventListener('resize', function () { measure(); onScroll(); });
   }
 
+})();
+</script>
+
+<script>
+(function () {
+  // The scroll-scrubbed flight into the monitor.
+  //
+  // This one always runs. Everything else on the page is expressible as CSS
+  // driven by a scroll timeline, but currentTime is not a style — no timeline
+  // can set it — so this block cannot stand down the way the parallax fallback
+  // above does, and it carries its own copy of the pin arithmetic rather than
+  // reaching into a script that may have returned on line one.
+  //
+  // SEAM is the same figure as in the stylesheet's animation-range and in the
+  // fallback above: the video's clock starts a fifth of the way through the
+  // pin, which is halfway through the camera move, and finishes with it.
+  var SEAM = 0.20;
+
+  var zoom = document.getElementById('zoom');
+  var vid  = document.getElementById('zoom-vid');
+  if (!zoom || !vid) return;
+
+  var span = 1, dur = 0, queued = false;
+  var target = 0, applied = -1;
+
+  // The file's own URL, read now because currentSrc is still empty until
+  // loading starts. Keeping it is what lets a blob that turns out not to be
+  // decodable be handed back to the network stack instead of losing the video
+  // outright: whatever went wrong with the copy, the original may still play.
+  var netSrc = vid.src;
+  var reverted = false;
+
+  function measure() { span = Math.max(1, zoom.offsetHeight - innerHeight); }
+
+  function progress() {
+    var t = (-zoom.getBoundingClientRect().top / span - SEAM) / (1 - SEAM);
+    return t < 0 ? 0 : t > 1 ? 1 : t;
+  }
+
+  // Backpressure rather than a firehose. Seeking while a seek is in flight is
+  // legal but wasteful, so the newest position is parked and applied when the
+  // engine comes back — which is also why 'seeked' calls straight back in
+  // here, to catch up on however far the scroll ran in the meantime.
+  function apply() {
+    if (!dur || vid.seeking) return;
+    if (Math.abs(target - applied) < 0.01) return;
+    applied = target;
+    try { vid.currentTime = target; } catch (e) {}
+  }
+
+  function render() {
+    queued = false;
+    // A hair short of the end: seeking to exactly the duration can land past
+    // the last sample and leave the element showing nothing.
+    if (dur) { target = progress() * (dur - 0.04); apply(); }
+  }
+
+  function onScroll() {
+    if (!queued) { queued = true; requestAnimationFrame(render); }
+  }
+
+  vid.addEventListener('seeked', apply);
+
+  vid.addEventListener('error', function () {
+    if (reverted || vid.src.slice(0, 5) !== 'blob:') return;
+    reverted = true;
+    URL.revokeObjectURL(vid.src);
+    vid.src = netSrc;
+    vid.load();
+  });
+
+  vid.addEventListener('loadedmetadata', function () {
+    dur = vid.duration || 0;
+    measure();
+    applied = -1;
+    render();
+  });
+
+  // One decodable frame is the bar for letting the video show at all; until
+  // then the still underneath holds the frame. See .is-vid-ready in the CSS.
+  vid.addEventListener('loadeddata', function () {
+    zoom.classList.add('is-vid-ready');
+  });
+
+  // iOS will not decode or seek an inline video it considers untouched. A
+  // muted inline video is allowed to autoplay, so starting and immediately
+  // stopping it is enough to unlock seeking without asking for a gesture; if
+  // the promise is rejected, the first touch anywhere does the same job.
+  function unlock() {
+    var p = vid.play();
+    if (p && p.then) p.then(function () { vid.pause(); }, function () {});
+  }
+
+  // Fetching the file whole and seeking inside a blob is the difference
+  // between a scrub and a stutter: it retires every range request up front, so
+  // no seek can land on a byte range the browser has yet to ask for. It needs
+  // a real origin — from a file:// page the fetch fails and there is nothing
+  // lost by falling back on the network stack's own buffering.
+  function load() {
+    vid.preload = 'auto';
+
+    if (location.protocol === 'file:' || typeof fetch !== 'function' ||
+        !window.URL || !URL.createObjectURL) {
+      vid.load();
+      unlock();
+      return;
+    }
+
+    var mime = 'video/mp4';
+
+    fetch(netSrc).then(function (r) {
+      if (!r.ok) throw 0;
+      // A blob carries only the type it is given, and a response with no
+      // Content-Type at all would hand the demuxer a typeless one. Take the
+      // server at its word when it names a video type, and otherwise say what
+      // this file actually is.
+      var ct = r.headers.get('content-type') || '';
+      if (ct.slice(0, 6) === 'video/') mime = ct;
+      return r.arrayBuffer();
+    }).then(function (buf) {
+      var at = applied > 0 ? applied : 0;
+      vid.src = URL.createObjectURL(new Blob([buf], { type: mime }));
+      vid.addEventListener('loadedmetadata', function once() {
+        vid.removeEventListener('loadedmetadata', once);
+        try { vid.currentTime = at; } catch (e) {}
+        applied = at;
+      });
+      unlock();
+    }).catch(function () {
+      vid.load();
+      unlock();
+    });
+  }
+
+  // Not on page load: this is 4MB three viewports down, and the hero has to
+  // paint first. One viewport of warning is enough to have it decoded and
+  // seekable by the time the seam arrives, which is two further viewports on.
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      io.disconnect();
+      load();
+    }, { rootMargin: '100% 0px' });
+    io.observe(zoom);
+  } else {
+    load();
+  }
+
+  measure();
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', function () { measure(); onScroll(); });
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', function () { measure(); onScroll(); });
+  }
 })();
 </script>
 
