@@ -375,18 +375,24 @@ body {
    the pin does.
 
    --v is the video's own timeline. It starts halfway through --z — the seam,
-   where the still hands over — and runs to the very end of the pin. So the
-   flight into the screen is still climbing out of the mosaic when the video
-   starts, reaches full bleed about a quarter of the way through the footage,
-   and then plays out the remaining three quarters full screen while the reader
-   keeps scrolling.
+   where the still hands over — and runs on well past it. So the flight into
+   the screen is still climbing out of the mosaic when the video starts,
+   reaches full bleed about a quarter of the way through the footage, and then
+   plays out the remaining three quarters full screen while the reader keeps
+   scrolling.
 
-   The two figures below are the only knobs. ZOOM_END is where --z lands and
-   SEAM is where --v starts, both as a fraction of the pin; they are repeated
-   verbatim in the two scripts at the foot of the document, which have to agree
-   with them. At 600vh the pin is 500vh, so --z owns the first 200vh (exactly
-   the run it had before this video existed, so the gallery reads unchanged)
-   and the video scrubs across the 400vh from the seam to the end. */
+   --k is the skills, and it takes over where the video stops. The frame is
+   parked on the video's last still for the whole of it, so the eight labels
+   have somewhere quiet to land; the phase ends with every one of them gone
+   again, on exactly the frame it started from.
+
+   The three figures below are the only knobs. ZOOM_END is where --z lands,
+   SEAM is where --v starts, VID_END is where --v finishes and --k begins;
+   all as a fraction of the pin, and all repeated verbatim in the two scripts
+   at the foot of the document, which have to agree with them. At 1100vh the
+   pin is 1000vh, which divides as 200vh of camera move (exactly the run the
+   gallery had before any of this), 400vh of video from the seam, and 500vh of
+   skills — with the first two overlapping across the middle 100vh. */
 @property --z {
   syntax: "<number>";
   inherits: true;
@@ -409,29 +415,42 @@ body {
   to   { --v: 1; }
 }
 
+@property --k {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@keyframes skills-progress {
+  from { --k: 0; }
+  to   { --k: 1; }
+}
+
 .zoom {
   position: relative;
   /* Pin length: the stage sticks for height − 100vh of scrolling. */
-  height: 600vh;
-  height: 600svh;
+  height: 1100vh;
+  height: 1100svh;
   background: var(--bg);
 }
 
 /* `contain` is the range in which a subject taller than the viewport
    completely fills it — precisely the span over which the stage is stuck,
-   and the equivalent of the reference's start-start → end-end offsets. Both
-   animations ride it; only their ranges differ. `animation-fill-mode: both` is
-   what holds --z at 1 for the whole stretch of pin past ZOOM_END, so the frame
-   simply stays full-bleed while the video plays on. */
+   and the equivalent of the reference's start-start → end-end offsets. All
+   three animations ride it; only their ranges differ. `animation-fill-mode:
+   both` is what holds each at its end value for the rest of the pin — so the
+   frame stays full-bleed while the video plays on, and the video stays on its
+   last frame while the skills come and go. */
 @supports (animation-timeline: view()) {
   .zoom {
-    animation-name: zoom-progress, video-progress;
-    animation-duration: auto, auto;
-    animation-timing-function: linear, linear;
-    animation-fill-mode: both, both;
-    animation-timeline: view(), view();
-    animation-range: contain 0% contain 40%,     /* ZOOM_END */
-                     contain 20% contain 100%;   /* SEAM */
+    animation-name: zoom-progress, video-progress, skills-progress;
+    animation-duration: auto, auto, auto;
+    animation-timing-function: linear, linear, linear;
+    animation-fill-mode: both, both, both;
+    animation-timeline: view(), view(), view();
+    animation-range: contain 0% contain 20%,     /* ZOOM_END */
+                     contain 10% contain 50%,    /* SEAM → VID_END */
+                     contain 50% contain 100%;   /* VID_END → the end */
   }
 }
 
@@ -667,6 +686,108 @@ body {
   letter-spacing: 0.01em;
   opacity: 0.9;
 }
+
+/* -------------------------------------------------------------------------
+   The skills, over the landed frame.
+
+   Eight labels, four either side of the file icon, arriving one at a time and
+   then leaving the same way — so the last frame of the pin is the first frame
+   of this phase, the bare desktop, unchanged.
+
+   All of the timing is per-label arithmetic on --k rather than eight sets of
+   keyframes, which keeps the whole sequence legible as two numbers: a label
+   starts arriving at --i x 0.055 and starts leaving at 0.72 + --i x 0.02. The
+   arrival stagger is the wide one because that is the part being read; the
+   departure is tighter so the eight of them clear the frame together rather
+   than dribbling off. The last to leave is done by 0.98, which leaves a slice
+   of pin at the end holding nothing but the desktop.
+
+   --i is the position in that queue, and it alternates sides: the left column
+   takes the even slots and the right the odd, so the labels land in a zigzag
+   rather than filling one side and then the other.
+   ------------------------------------------------------------------------- */
+.skills {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Pushed well in from the edges rather than pinned to them: at 4vw the two
+     columns sat against the frame with a void between them and the icon, and
+     read as page furniture instead of as something flanking it. */
+  padding: 0 clamp(16px, 7vw, 150px);
+  /* The frame underneath is the subject; these are laid over it. */
+  pointer-events: none;
+}
+
+.skills__col {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(9px, 2.2vh, 20px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skills__col--l { --base: 0; --fx: -74px; --fy: 0px; align-items: flex-start; }
+.skills__col--r { --base: 1; --fx:  74px; --fy: 0px; align-items: flex-end; }
+
+.skill:nth-child(1) { --i: calc(var(--base) + 0); }
+.skill:nth-child(2) { --i: calc(var(--base) + 2); }
+.skill:nth-child(3) { --i: calc(var(--base) + 4); }
+.skill:nth-child(4) { --i: calc(var(--base) + 6); }
+
+.skill {
+  /* Raw 0 → 1 ramps for this label's arrival and departure. */
+  --in:  clamp(0, calc((var(--k) - var(--i) * 0.055) / 0.13), 1);
+  --out: clamp(0, calc((var(--k) - 0.72 - var(--i) * 0.02) / 0.12), 1);
+  /* Eased, because a linear ramp on a scroll-driven move reads as a slide
+     rather than a settle: quadratic out on the way in so it decelerates into
+     place, quadratic in on the way out so it leaves the way it came. */
+  --e:  calc(1 - (1 - var(--in)) * (1 - var(--in)));
+  --eo: calc(var(--out) * var(--out));
+
+  display: flex;
+  align-items: center;
+  gap: 0.72em;
+  padding: 0.6em 1.05em;
+  border-radius: 3px;
+  /* Near-black on a bright desktop, in the same register as the tile captions
+     and the affordance — this page states its overlays rather than frosting
+     them, and a backdrop blur over a video being seeked every frame is a cost
+     with nothing to show for it. */
+  background: rgba(7, 11, 15, 0.74);
+  border: 1px solid rgba(231, 237, 240, 0.16);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.34);
+  color: #eef4f7;
+  font-size: clamp(0.6rem, 1.02vw, 0.88rem);
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+
+  opacity: calc(var(--e) * (1 - var(--eo)));
+  /* In from its own side, and back out the same way — never across the icon.
+     The departure only retraces half the distance, so the labels read as
+     receding rather than as a second entrance played backwards. */
+  transform: translate(calc((1 - var(--e) + var(--eo) * 0.5) * var(--fx)),
+                       calc((1 - var(--e) + var(--eo) * 0.5) * var(--fy)))
+             scale(calc(0.93 + var(--e) * 0.07 - var(--eo) * 0.05));
+}
+
+/* The accent sits on the outer edge of each label, so the two columns bracket
+   the icon instead of pointing at it. It grows on the same eased curve. */
+.skill::before {
+  content: "";
+  width: 3px;
+  height: 1.06em;
+  border-radius: 2px;
+  background: var(--sky-high);
+  box-shadow: 0 0 10px rgba(69, 227, 251, 0.45);
+  transform: scaleY(var(--e));
+}
+
+.skills__col--r .skill { flex-direction: row-reverse; }
 
 /* -------------------------------------------------------------------------
    Tiles that open. Every layer is inset:0 — the full stage — and they are
@@ -987,6 +1108,35 @@ button.zoom__tile:focus-visible .zoom__more {
 
   .zoom__cap { font-size: 0.52rem; padding: 0.5em 30px 0.5em 0.55em; }
 
+  /* There is no room beside the icon on a phone — it is most of the screen —
+     so the two columns become two clusters, one in the band above it and one
+     below, each wrapping its four labels into a block. Same eight, same
+     stagger, same zigzag; they arrive from the near edge instead of the side,
+     which is the only thing --fx and --fy have to change. */
+  .skills {
+    flex-direction: column;
+    justify-content: space-between;
+    padding: clamp(12px, 3.5vh, 38px) 3vw;
+  }
+
+  .skills__col {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    max-width: 82vw;
+    gap: 6px;
+  }
+
+  .skills__col--l { --fx: 0px; --fy: -44px; }
+  .skills__col--r { --fx: 0px; --fy:  44px; }
+
+  .skill {
+    font-size: clamp(0.54rem, 2.85vw, 0.76rem);
+    padding: 0.48em 0.78em;
+    gap: 0.55em;
+  }
+
   /* The ring is 71vh here rather than 85vh, so the header's band is nearly
      twice as deep — enough to sit it off the top edge. Portrait never has
      the width for one line at this sentence length, so it stays on the
@@ -1235,6 +1385,24 @@ button.zoom__tile:focus-visible .zoom__more {
     <div class="zoom__focus">
       <span>Cloud infrastructure · Program strategy · Automation · Data &amp; risk</span>
     </div>
+    <!-- The eight, drawn from the role detail below: each one is something the
+         dialogs actually evidence rather than a word off a résumé template.
+         Reading order is down the left column and then the right; the arrival
+         order alternates between them, which is what --base sets. -->
+    <div class="skills">
+      <ul class="skills__col skills__col--l" aria-label="Core skills">
+        <li class="skill">Program Strategy</li>
+        <li class="skill">Azure Infrastructure</li>
+        <li class="skill">Automation &amp; DevOps</li>
+        <li class="skill">Incident Response</li>
+      </ul>
+      <ul class="skills__col skills__col--r">
+        <li class="skill">Cross-functional Delivery</li>
+        <li class="skill">Power Platform</li>
+        <li class="skill">Data &amp; Reporting</li>
+        <li class="skill">Compliance &amp; Risk</li>
+      </ul>
+    </div>
   </div>
 </div>
 
@@ -1364,20 +1532,22 @@ button.zoom__tile:focus-visible .zoom__more {
     return v < 0 ? 0 : v > 1 ? 1 : v;
   }
 
-  // The two knobs from the @supports block up in the stylesheet. --z is done
-  // by ZOOM_END of the pin; --v runs from SEAM to the end of it.
-  var ZOOM_END = 0.40;
-  var SEAM     = 0.20;
+  // The three knobs from the @supports block up in the stylesheet: --z is done
+  // by ZOOM_END of the pin, --v runs SEAM → VID_END, and --k runs VID_END → 1.
+  var ZOOM_END = 0.20;
+  var SEAM     = 0.10;
+  var VID_END  = 0.50;
+
+  function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
   function render() {
     queued = false;
     root.style.setProperty('--p', pin(hero, span).toFixed(4));
 
     var t = pin(zoom, zoomSpan);
-    var z = t / ZOOM_END;
-    var v = (t - SEAM) / (1 - SEAM);
-    root.style.setProperty('--z', (z > 1 ? 1 : z).toFixed(4));
-    root.style.setProperty('--v', (v < 0 ? 0 : v > 1 ? 1 : v).toFixed(4));
+    root.style.setProperty('--z', clamp01(t / ZOOM_END).toFixed(4));
+    root.style.setProperty('--v', clamp01((t - SEAM) / (VID_END - SEAM)).toFixed(4));
+    root.style.setProperty('--k', clamp01((t - VID_END) / (1 - VID_END)).toFixed(4));
   }
 
   function onScroll() {
@@ -1409,10 +1579,13 @@ button.zoom__tile:focus-visible .zoom__more {
   // above does, and it carries its own copy of the pin arithmetic rather than
   // reaching into a script that may have returned on line one.
   //
-  // SEAM is the same figure as in the stylesheet's animation-range and in the
-  // fallback above: the video's clock starts a fifth of the way through the
-  // pin, which is halfway through the camera move, and finishes with it.
-  var SEAM = 0.20;
+  // The same two figures as in the stylesheet's animation-range and in the
+  // fallback above: the video's clock starts a tenth of the way through the
+  // pin, which is halfway through the camera move, and is spent at the
+  // halfway mark — from there the frame holds its last still while the skills
+  // phase runs out the rest of the pin.
+  var SEAM    = 0.10;
+  var VID_END = 0.50;
 
   var zoom = document.getElementById('zoom');
   var vid  = document.getElementById('zoom-vid');
@@ -1431,7 +1604,7 @@ button.zoom__tile:focus-visible .zoom__more {
   function measure() { span = Math.max(1, zoom.offsetHeight - innerHeight); }
 
   function progress() {
-    var t = (-zoom.getBoundingClientRect().top / span - SEAM) / (1 - SEAM);
+    var t = (-zoom.getBoundingClientRect().top / span - SEAM) / (VID_END - SEAM);
     return t < 0 ? 0 : t > 1 ? 1 : t;
   }
 
