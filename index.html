@@ -729,17 +729,13 @@ body {
      the bottom, they share a corner, and the narrowest tiles wrap their
      company or role onto a line long enough to run under it without this. */
   padding: 0.6em 34px 0.6em 0.65em;
-  /* Frosted glass over whatever the photograph is doing underneath: the blur
-     flattens busy detail behind the text and the gradient darkens it further,
-     top to bottom, so the white caption stays legible against any of the six
-     images without needing to know their content ahead of time. Backdrop-
-     filter is additive, not load-bearing — a browser without it still gets
-     the dark gradient alone, which was the whole treatment before. */
-  background: linear-gradient(rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.08) 85%, rgba(0, 0, 0, 0));
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* A dark gradient over whatever the photograph is doing underneath, plus a
+     text-shadow on the letters themselves: together they keep the white
+     caption legible against any of the six images without needing to know
+     their content ahead of time. */
+  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8) 80%, rgba(0, 0, 0, 0));
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
   font-size: 0.58rem;
   line-height: 1.28;
   letter-spacing: 0.01em;
