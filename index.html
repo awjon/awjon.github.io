@@ -584,7 +584,12 @@ body {
   display: flex;
   align-items: flex-start;
   overflow: hidden;
-  background: var(--c);
+  /* --c is the fallback swatch (and the only fill the centre tile ever gets);
+     --img, set per role below, paints a photograph over it once it loads. */
+  background-color: var(--c);
+  background-image: var(--img, none);
+  background-size: cover;
+  background-position: center;
   border-radius: 2px;
 }
 
@@ -724,8 +729,17 @@ body {
      the bottom, they share a corner, and the narrowest tiles wrap their
      company or role onto a line long enough to run under it without this. */
   padding: 0.6em 34px 0.6em 0.65em;
-  background: linear-gradient(rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0));
+  /* Frosted glass over whatever the photograph is doing underneath: the blur
+     flattens busy detail behind the text and the gradient darkens it further,
+     top to bottom, so the white caption stays legible against any of the six
+     images without needing to know their content ahead of time. Backdrop-
+     filter is additive, not load-bearing — a browser without it still gets
+     the dark gradient alone, which was the whole treatment before. */
+  background: linear-gradient(rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.08) 85%, rgba(0, 0, 0, 0));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
   font-size: 0.58rem;
   line-height: 1.28;
   letter-spacing: 0.01em;
@@ -1130,36 +1144,42 @@ button.zoom__tile:focus-visible .zoom__more {
 .zoom__layer:nth-of-type(2) .zoom__tile {
   --tw: var(--bar-w); --th: var(--row-h);
   --tx: calc(-1 * var(--bar-x)); --ty: calc(-1 * var(--row-y)); --c: #7a5d3f;
+  --img: url("assets/1.webp");
 }
 
 .zoom__layer:nth-of-type(3) { --s: 6.1; }
 .zoom__layer:nth-of-type(3) .zoom__tile {
   --tw: var(--small-w); --th: var(--row-h);
   --tx: var(--small-x); --ty: calc(-1 * var(--row-y)); --c: #3f6b4f;
+  --img: url("assets/2.webp");
 }
 
 .zoom__layer:nth-of-type(4) { --s: 9.0; }
 .zoom__layer:nth-of-type(4) .zoom__tile {
   --tw: var(--flank-w); --th: var(--mid);
   --tx: calc(-1 * var(--flank-x)); --c: #6b3f52;
+  --img: url("assets/3.webp");
 }
 
 .zoom__layer:nth-of-type(5) { --s: 9.7; }
 .zoom__layer:nth-of-type(5) .zoom__tile {
   --tw: var(--flank-w); --th: var(--mid);
   --tx: var(--flank-x); --c: #4a4f7a;
+  --img: url("assets/4.webp");
 }
 
 .zoom__layer:nth-of-type(6) { --s: 6.9; }
 .zoom__layer:nth-of-type(6) .zoom__tile {
   --tw: var(--small-w); --th: var(--row-h);
   --tx: calc(-1 * var(--small-x)); --ty: var(--row-y); --c: #7a6a3f;
+  --img: url("assets/5.webp");
 }
 
 .zoom__layer:nth-of-type(7) { --s: 6.7; }
 .zoom__layer:nth-of-type(7) .zoom__tile {
   --tw: var(--bar-w); --th: var(--row-h);
   --tx: var(--bar-x); --ty: var(--row-y); --c: #3f5f6b;
+  --img: url("assets/6.webp");
 }
 
 /* Portrait. --vmax flips from the width to the height here, so at 20vmax the
