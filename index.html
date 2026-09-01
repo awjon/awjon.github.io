@@ -398,24 +398,31 @@ body {
    monitorzoom.mp4 ends on — checked, they differ by about 2/255, which is
    compression noise — and pulls back off the screen to a laptop closing on a
    desk, then pushes into the whiteboard behind it until the board fills the
-   frame. It runs the rest of the pin, and the case studies below inherit the
-   colour it lands on, so the stage releasing into that section is invisible.
+   frame.
+
+   --c is the case studies, written onto that board. Like the skills, they are
+   an overlay on a frame the video is parked on rather than a section of their
+   own, and like the skills the phase ends where it began: everything wipes off
+   and the pin's last frame is the bare board again.
 
    The three figures below are the only knobs. ZOOM_END is where --z lands,
    SEAM is where --v starts, VID_END is where --v finishes and --k begins;
    all as a fraction of the pin, and all repeated verbatim in the two scripts
    at the foot of the document, which have to agree with them.
 
-   At 1060vh the pin is 960vh, which divides as 200vh of camera move (exactly
+   At 1340vh the pin is 1240vh, which divides as 200vh of camera move (exactly
    the run the gallery has always had), 320vh of the first video from the seam,
-   240vh of skills, and 300vh of the second — with the first two overlapping
-   across the middle 100vh. The odd-looking percentages below are just those
-   lengths over 960; the vh figures are the ones to reason about.
+   240vh of skills, 300vh of the second video and 280vh of case studies — with
+   the first two overlapping across the middle 100vh. The odd-looking
+   percentages below are just those lengths over 1240; the vh figures are the
+   ones to reason about.
 
    That puts the two videos at about 35 and 30vh of scroll per second of
    footage, both inside the band where a scrub still feels driven rather than
    dragged: much under 25vh/s and it flicks past, much over 45 and the reader
-   is winding a handle on it. */
+   is winding a handle on it. The case studies get the longest hold on the
+   page — around 160vh with every card up — because they are the one overlay
+   here a reader is meant to stop at and click. */
 @property --z {
   syntax: "<number>";
   inherits: true;
@@ -460,11 +467,22 @@ body {
   to   { --b: 1; }
 }
 
+@property --c {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@keyframes cases-progress {
+  from { --c: 0; }
+  to   { --c: 1; }
+}
+
 .zoom {
   position: relative;
   /* Pin length: the stage sticks for height − 100vh of scrolling. */
-  height: 1060vh;
-  height: 1060svh;
+  height: 1340vh;
+  height: 1340svh;
   background: var(--bg);
 }
 
@@ -477,15 +495,17 @@ body {
    last frame while the skills come and go. */
 @supports (animation-timeline: view()) {
   .zoom {
-    animation-name: zoom-progress, video-progress, skills-progress, board-progress;
-    animation-duration: auto, auto, auto, auto;
-    animation-timing-function: linear, linear, linear, linear;
-    animation-fill-mode: both, both, both, both;
-    animation-timeline: view(), view(), view(), view();
-    animation-range: contain 0% contain 20.83%,        /* ZOOM_END   — 200vh */
-                     contain 10.42% contain 43.75%,    /* SEAM       — 320vh */
-                     contain 43.75% contain 68.75%,    /* VID_END    — 240vh */
-                     contain 68.75% contain 100%;      /* SKILLS_END — 300vh */
+    animation-name: zoom-progress, video-progress, skills-progress,
+                    board-progress, cases-progress;
+    animation-duration: auto, auto, auto, auto, auto;
+    animation-timing-function: linear, linear, linear, linear, linear;
+    animation-fill-mode: both, both, both, both, both;
+    animation-timeline: view(), view(), view(), view(), view();
+    animation-range: contain 0% contain 16.13%,        /* ZOOM_END   — 200vh */
+                     contain 8.06% contain 33.87%,     /* SEAM       — 320vh */
+                     contain 33.87% contain 53.23%,    /* VID_END    — 240vh */
+                     contain 53.23% contain 77.42%,    /* SKILLS_END — 300vh */
+                     contain 77.42% contain 100%;      /* BOARD_END  — 280vh */
   }
 }
 
@@ -1327,15 +1347,20 @@ button.zoom__tile:focus-visible .zoom__more {
 }
 
 /* =========================================================================
-   The whiteboard — where the second video lands, and the page ends.
+   The whiteboard — what gets written on the frame the second video lands on.
    =========================================================================
 
-   screentoboard.mp4 finishes on a whiteboard filling the frame, near enough
-   flat: sampled across that last frame the mean is #D2D9DD with a standard
-   deviation under 4. So this section simply IS that colour. The sticky stage
-   is still showing the board when the pin releases and this scrolls up behind
-   it, and because the two match there is no visible join — the reader does not
-   cross from a video into a page, they just carry on up the board.
+   Not a section below the pin but an overlay inside it, on the same pattern as
+   the skills: the video parks on the board and the studies are written onto
+   it, held long enough to read and click, then wiped off again so the pin's
+   last frame is the bare board it arrived at.
+
+   Which means everything here has to fit one viewport, because there is
+   nowhere to scroll to — the scroll is the animation. That is the constraint
+   behind the vh-tied sizes below: the whole block is measured against the
+   stage's height rather than set at comfortable reading sizes and left to
+   overflow. On a short window the studies give up their result line before
+   they give up their titles.
    ------------------------------------------------------------------------- */
 
 /* Permanent Marker by Font Diner, Apache License 2.0, from Google Fonts.
@@ -1353,27 +1378,37 @@ button.zoom__tile:focus-visible .zoom__more {
 }
 
 .board {
-  background-color: var(--board);
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(16px, 4vh, 44px) clamp(18px, 5vw, 64px);
   color: var(--ink-board);
-  padding: clamp(48px, 9vh, 104px) 6vw clamp(64px, 12vh, 128px);
-  /* The faint bloom a board picks up from the room light, so the section does
-     not read flatter than the frame it continues. It starts at zero: the very
-     top edge of this section is the flat sampled colour and nothing else,
-     because that edge butts directly onto the video's bottom edge as the pin
-     releases. Any lightening there would draw a line straight across the join,
-     which is exactly what a radial centred near the top did. */
-  background-image: linear-gradient(180deg,
-                    rgba(255, 255, 255, 0) 0%,
-                    rgba(255, 255, 255, 0.26) 34%,
-                    rgba(255, 255, 255, 0.12) 100%);
+  /* No background of its own: the board it is written on is the video. */
+  pointer-events: none;
+
+  /* Up over the first seventh, held, then wiped. The hold is the long part —
+     this is the one overlay on the page meant to be stopped at. */
+  --in:  clamp(0, calc(var(--c) / 0.14), 1);
+  --out: clamp(0, calc((var(--c) - 0.72) / 0.2), 1);
+  --e:   calc(1 - (1 - var(--in)) * (1 - var(--in)));
+  opacity: calc(var(--e) * (1 - var(--out)));
 }
 
-.board__inner { max-width: 960px; margin: 0 auto; }
+/* Only once the phase is actually live, and only the cards. An overlay at
+   opacity 0 still takes clicks; the class comes from the scrubber. */
+.zoom.is-cases .case { pointer-events: auto; }
+
+.board__inner { width: 100%; max-width: 1000px; margin: 0 auto; }
 
 .board__head {
   font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
   font-weight: 400;
-  font-size: clamp(1.9rem, 5.2vw, 3.1rem);
+  /* vh in the mix, not vw alone: this has to clear the five cards below it in
+     whatever height the stage actually has. */
+  font-size: clamp(1.3rem, min(4.4vw, 4.6vh), 2.6rem);
   line-height: 1.05;
   letter-spacing: 0.005em;
   margin: 0;
@@ -1385,9 +1420,9 @@ button.zoom__tile:focus-visible .zoom__more {
 /* The stroke under the heading, drawn the way someone underlines a title on a
    board: one pass, thicker in the middle, not quite parallel to the words. */
 .board__rule {
-  width: clamp(150px, 22vw, 260px);
-  height: 7px;
-  margin: 14px 0 0 2px;
+  width: clamp(120px, 19vw, 230px);
+  height: 6px;
+  margin: clamp(7px, 1.3vh, 13px) 0 0 2px;
   border-radius: 50%;
   background: linear-gradient(90deg,
               rgba(43, 48, 52, 0.25), rgba(43, 48, 52, 0.9) 34%,
@@ -1396,11 +1431,11 @@ button.zoom__tile:focus-visible .zoom__more {
 }
 
 .board__sub {
-  margin: 22px 0 clamp(30px, 5vh, 52px);
+  margin: clamp(10px, 1.8vh, 20px) 0 clamp(14px, 2.8vh, 30px);
   max-width: 46ch;
-  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
-  line-height: 1.55;
-  color: rgba(43, 48, 52, 0.72);
+  font-size: clamp(0.78rem, min(1.4vw, 1.9vh), 1rem);
+  line-height: 1.5;
+  color: rgba(43, 48, 52, 0.74);
 }
 
 .board__grid {
@@ -1412,11 +1447,14 @@ button.zoom__tile:focus-visible .zoom__more {
      these and auto-fit resolves to three columns at this width, which strands
      the fourth alone on a second row with two empty cells beside it. */
   grid-template-columns: 1fr;
-  gap: clamp(18px, 2.6vw, 30px);
+  gap: clamp(7px, min(1.5vw, 1.6vh), 18px);
 }
 
 @media (min-width: 720px) {
   .board__grid { grid-template-columns: 1fr 1fr; }
+  /* The philosophy runs the full width under the four studies: it is not a
+     fifth case, it is the thing the four have in common. */
+  .board__grid li:last-child { grid-column: 1 / -1; }
 }
 
 /* Each study is a box someone drew around what they wrote. The border is the
@@ -1430,18 +1468,21 @@ button.zoom__tile:focus-visible .zoom__more {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 9px;
+  gap: clamp(3px, 0.7vh, 7px);
   width: 100%;
   height: 100%;
   margin: 0;
-  padding: clamp(20px, 2.6vw, 30px) clamp(18px, 2.4vw, 28px) clamp(18px, 2.2vw, 26px);
+  padding: clamp(10px, 1.8vh, 20px) clamp(13px, 1.8vw, 22px) clamp(9px, 1.5vh, 17px);
   appearance: none;
   -webkit-appearance: none;
   text-align: left;
   font: inherit;
   color: inherit;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.34);
+  /* Lighter than it was as a section: this now sits on the video's own board
+     rather than on a matching flat colour, and the frame underneath carries
+     enough texture that a barely-there fill leaves the type fighting it. */
+  background: rgba(255, 255, 255, 0.46);
   border: 2px solid color-mix(in srgb, var(--marker) 38%, transparent);
   border-radius: 14px 7px 16px 9px;
   transform: rotate(-0.45deg);
@@ -1470,39 +1511,68 @@ button.zoom__tile:focus-visible .zoom__more {
 
 .case__n {
   font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
-  font-size: 0.98rem;
+  font-size: clamp(0.72rem, 1.5vh, 0.95rem);
   color: var(--marker);
   opacity: 0.62;
 }
 
 .case__title {
   font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
-  font-size: clamp(1.18rem, 2.3vw, 1.6rem);
-  line-height: 1.16;
+  font-size: clamp(0.95rem, min(1.9vw, 2.5vh), 1.42rem);
+  line-height: 1.14;
   color: var(--marker);
 }
 
 .case__meta {
-  font-size: 0.76rem;
+  font-size: clamp(0.58rem, 1.35vh, 0.74rem);
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: rgba(43, 48, 52, 0.58);
+  color: rgba(43, 48, 52, 0.6);
 }
 
 .case__result {
-  margin-top: 2px;
-  font-size: clamp(0.88rem, 1.35vw, 0.98rem);
-  line-height: 1.5;
+  margin-top: 1px;
+  font-size: clamp(0.74rem, min(1.25vw, 1.75vh), 0.94rem);
+  line-height: 1.42;
   color: rgba(43, 48, 52, 0.88);
+}
+
+/* The result line is the first thing to go when the stage runs out of height,
+   and on a phone the standfirst goes with it. Five cards stacked in portrait
+   measure 967px against a 776px budget on a 390x844 handset; dropping those
+   two brings it to about 740 with room to spare for a narrower screen, and
+   the card still carries its number, its title, who and when, and the way in.
+   The result is one tap away in the sheet. Overflowing is not an option the
+   way it would be in a normal section — this is pinned, so there is nowhere
+   for the overflow to go. */
+@media (max-height: 620px), (max-aspect-ratio: 1/1) {
+  .case__result { display: none; }
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .board__sub { display: none; }
+  .board__rule { margin-bottom: clamp(10px, 2vh, 22px); }
+  /* Five boxes stacked leaves no slack for generous boxes. */
+  .case { padding: clamp(7px, 1.1vh, 13px) clamp(11px, 3vw, 16px) clamp(6px, 1vh, 11px); }
+  .board__grid { gap: clamp(5px, 0.8vh, 9px); }
+}
+
+/* The last thing to go, and only where nothing else will do it: a 360x640
+   handset still overran by 46px with the standfirst and the results already
+   gone, because at that width the titles wrap to three lines. Below this the
+   card is its number, its name and the way in — everything else is in the
+   sheet behind it. */
+@media (max-height: 700px) {
+  .case__meta { display: none; }
 }
 
 /* Pushed to the bottom of the card so the four affordances line up across the
    grid however unevenly the copy above them falls. */
 .case__more {
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: clamp(5px, 1.1vh, 11px);
   font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
-  font-size: 0.95rem;
+  font-size: clamp(0.72rem, 1.5vh, 0.92rem);
   color: var(--marker);
   opacity: 0.78;
   transition: opacity 220ms ease;
@@ -1511,11 +1581,46 @@ button.zoom__tile:focus-visible .zoom__more {
 .case:hover .case__more,
 .case:focus-visible .case__more { opacity: 1; }
 
+/* The philosophy is the odd one out by design: no number, because it is not
+   the fifth of a series, and the arrow chain sits where the four studies put
+   their result line. On a wide grid it spans both columns under them — and
+   once it does, it lays out across that width rather than stacking: name on
+   the left, the chain running out to the right, the affordance after it.
+   Stacked in a full-width box it left two thirds of the row empty. */
+.case--wide { flex-direction: column; }
+
+.case__lead { display: flex; flex-direction: column; gap: clamp(2px, 0.5vh, 5px); }
+
+@media (min-width: 720px) {
+  .case--wide {
+    flex-direction: row;
+    align-items: center;
+    gap: clamp(14px, 2.4vw, 34px);
+  }
+  .case--wide .case__chain { margin-top: 0; margin-left: auto; }
+  .case--wide .case__more { margin-top: 0; padding-top: 0; }
+}
+
+.case__chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3em 0.62em;
+  margin-top: 2px;
+  font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: clamp(0.8rem, min(1.5vw, 2vh), 1.12rem);
+  letter-spacing: 0.02em;
+  color: var(--marker);
+}
+
+.case__chain i { font-style: normal; opacity: 0.5; }
+
 /* The four marker colours, in the order a set of board pens comes in. */
 .case--k { --marker: #2b3034; }
 .case--b { --marker: #1d5fa6; }
 .case--g { --marker: #1c7a4c; }
 .case--r { --marker: #b23a2c; }
+.case--p { --marker: #6a3d9a; }
 
 /* The detail sheets open on the board rather than over the dark page, so they
    keep the section's register instead of punching a hole in it. */
@@ -1544,6 +1649,27 @@ button.zoom__tile:focus-visible .zoom__more {
 .sheet--board.sheet--b { --accent: #1d5fa6; --marker: #1d5fa6; }
 .sheet--board.sheet--g { --accent: #1c7a4c; --marker: #1c7a4c; }
 .sheet--board.sheet--r { --accent: #b23a2c; --marker: #b23a2c; }
+.sheet--board.sheet--p { --accent: #6a3d9a; --marker: #6a3d9a; }
+
+/* The chain is the point of the philosophy sheet, so it gets to be the first
+   thing in it rather than another bullet. */
+.sheet__chain {
+  margin: 16px 0 4px;
+  font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: clamp(0.95rem, 2.4vw, 1.22rem);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--marker);
+}
+
+.sheet__chain i { font-style: normal; opacity: 0.5; }
+
+.sheet__pillars {
+  margin: 10px 0 2px;
+  font-size: 0.88rem;
+  line-height: 1.62;
+  color: rgba(43, 48, 52, 0.82);
+}
 .sheet--board .sheet__panel li { color: rgba(43, 48, 52, 0.88); }
 
 .sheet--board .sheet__close {
@@ -1553,7 +1679,7 @@ button.zoom__tile:focus-visible .zoom__more {
 }
 
 @media (max-width: 560px) {
-  .board { padding-left: 5vw; padding-right: 5vw; }
+  .board { padding-left: 4vw; padding-right: 4vw; }
   .board__grid { grid-template-columns: 1fr; }
 }
 
@@ -1687,6 +1813,84 @@ button.zoom__tile:focus-visible .zoom__more {
     <div class="zoom__focus">
       <span>Cloud infrastructure · Program strategy · Automation · Data &amp; risk</span>
     </div>
+    <!-- The case studies, written onto the board the second video lands on.
+         An overlay inside the pin rather than a section after it: the frame
+         underneath is the video parked on its last still, and the phase ends
+         by wiping all of this off again. Everything here has to fit one
+         viewport — there is nowhere to scroll to, the scroll is the animation.
+
+         Four studies, one per marker, and then the philosophy across the foot
+         of them: no number, because it is not the fifth of a series. -->
+    <div class="board" id="case-studies">
+      <div class="board__inner">
+        <h2 class="board__head">Case studies</h2>
+        <div class="board__rule"></div>
+        <p class="board__sub">Four problems that arrived without a plan attached, and what
+           came out the other side.</p>
+        <ul class="board__grid">
+          <li>
+            <button class="case case--k" type="button" data-sheet="case-attack"
+                    aria-haspopup="dialog"
+                    aria-label="Case study: 34 days under fire. Microsoft Security Response Center, 2022 to 2025. Open detail.">
+              <span class="case__n">01</span>
+              <span class="case__title">34 days under fire</span>
+              <span class="case__meta">Microsoft · Security Response Center · 2022–2025</span>
+              <span class="case__result">Critical infrastructure stood up in 34 days, while the
+                attack was still live.</span>
+              <span class="case__more">Read it →</span>
+            </button>
+          </li>
+          <li>
+            <button class="case case--b" type="button" data-sheet="case-residency"
+                    aria-haspopup="dialog"
+                    aria-label="Case study: 108,000 users, three jurisdictions. Microsoft Security Response Center, 2022 to 2025. Open detail.">
+              <span class="case__n">02</span>
+              <span class="case__title">108,000 users, three jurisdictions</span>
+              <span class="case__meta">Microsoft · Security Response Center · 2022–2025</span>
+              <span class="case__result">Remote work for 108k people without breaching EU data
+                residency in any of them.</span>
+              <span class="case__more">Read it →</span>
+            </button>
+          </li>
+          <li>
+            <button class="case case--g" type="button" data-sheet="case-sixtyone"
+                    aria-haspopup="dialog"
+                    aria-label="Case study: automating a 61 million dollar business. Microsoft Fast Track, 2020 to 2022. Open detail.">
+              <span class="case__n">03</span>
+              <span class="case__title">Automating a $61M business</span>
+              <span class="case__meta">Microsoft · Fast Track · 2020–2022</span>
+              <span class="case__result">Thirty percent more throughput and lead times halved,
+                on nine Power Apps.</span>
+              <span class="case__more">Read it →</span>
+            </button>
+          </li>
+          <li>
+            <button class="case case--r" type="button" data-sheet="case-ubereats"
+                    aria-haspopup="dialog"
+                    aria-label="Case study: UberEats to 5,496 stores. Starbucks Retail Platform Engineering, 2019 to 2020. Open detail.">
+              <span class="case__n">04</span>
+              <span class="case__title">UberEats to 5,496 stores</span>
+              <span class="case__meta">Starbucks · Retail Platform Engineering · 2019–2020</span>
+              <span class="case__result">$4.1M in new revenue, and a support queue that fell
+                by 95%.</span>
+              <span class="case__more">Read it →</span>
+            </button>
+          </li>
+          <li>
+            <button class="case case--p case--wide" type="button" data-sheet="case-philosophy"
+                    aria-haspopup="dialog"
+                    aria-label="My philosophy: how the work actually gets run. Open detail.">
+              <span class="case__lead">
+                <span class="case__title">My Philosophy</span>
+                <span class="case__meta">How the work actually gets run</span>
+              </span>
+              <span class="case__chain">Ambiguity <i>→</i> Alignment <i>→</i> Execution <i>→</i> Delivery</span>
+              <span class="case__more">Read it →</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
     <!-- Twelve, named for the terms an applicant tracking system scans for,
          and ordered so each column is one coherent group: the left builds and
          automates, the right runs, governs and reports. Each is something the
@@ -1717,68 +1921,6 @@ button.zoom__tile:focus-visible .zoom__more {
   </div>
 </div>
 
-
-<!-- The whiteboard. screentoboard.mp4 lands on this exact colour, and the pin
-     releases straight into it, so the reader carries on up the board rather
-     than crossing out of a video into a page. Four studies, one per marker. -->
-<section class="board" id="case-studies">
-  <div class="board__inner">
-    <h2 class="board__head">Case studies</h2>
-    <div class="board__rule"></div>
-    <p class="board__sub">Four problems that arrived without a plan attached, and what
-       came out the other side.</p>
-    <ul class="board__grid">
-      <li>
-        <button class="case case--k" type="button" data-sheet="case-attack"
-                aria-haspopup="dialog"
-                aria-label="Case study: 34 days under fire. Microsoft Security Response Center, 2022 to 2025. Open detail.">
-          <span class="case__n">01</span>
-          <span class="case__title">34 days under fire</span>
-          <span class="case__meta">Microsoft · Security Response Center · 2022–2025</span>
-          <span class="case__result">Critical infrastructure stood up in 34 days, while the
-            attack was still live.</span>
-          <span class="case__more">Read it →</span>
-        </button>
-      </li>
-      <li>
-        <button class="case case--b" type="button" data-sheet="case-residency"
-                aria-haspopup="dialog"
-                aria-label="Case study: 108,000 users, three jurisdictions. Microsoft Security Response Center, 2022 to 2025. Open detail.">
-          <span class="case__n">02</span>
-          <span class="case__title">108,000 users, three jurisdictions</span>
-          <span class="case__meta">Microsoft · Security Response Center · 2022–2025</span>
-          <span class="case__result">Remote work for 108k people without breaching EU data
-            residency in any of them.</span>
-          <span class="case__more">Read it →</span>
-        </button>
-      </li>
-      <li>
-        <button class="case case--g" type="button" data-sheet="case-sixtyone"
-                aria-haspopup="dialog"
-                aria-label="Case study: automating a 61 million dollar business. Microsoft Fast Track, 2020 to 2022. Open detail.">
-          <span class="case__n">03</span>
-          <span class="case__title">Automating a $61M business</span>
-          <span class="case__meta">Microsoft · Fast Track · 2020–2022</span>
-          <span class="case__result">Thirty percent more throughput and lead times halved,
-            on nine Power Apps.</span>
-          <span class="case__more">Read it →</span>
-        </button>
-      </li>
-      <li>
-        <button class="case case--r" type="button" data-sheet="case-ubereats"
-                aria-haspopup="dialog"
-                aria-label="Case study: UberEats to 5,496 stores. Starbucks Retail Platform Engineering, 2019 to 2020. Open detail.">
-          <span class="case__n">04</span>
-          <span class="case__title">UberEats to 5,496 stores</span>
-          <span class="case__meta">Starbucks · Retail Platform Engineering · 2019–2020</span>
-          <span class="case__result">$4.1M in new revenue, and a support queue that fell
-            by 95%.</span>
-          <span class="case__more">Read it →</span>
-        </button>
-      </li>
-    </ul>
-  </div>
-</section>
 
 <!-- Role detail, one dialog per openable tile. Modal <dialog> gives the
      Escape key, the focus trap and focus return to the tile for free. -->
@@ -1933,6 +2075,25 @@ button.zoom__tile:focus-visible .zoom__more {
   </div>
 </dialog>
 
+<dialog class="sheet sheet--board sheet--p" id="sheet-case-philosophy" aria-labelledby="sheet-case-philosophy-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">My philosophy · how the work gets run</p>
+    <h2 id="sheet-case-philosophy-title">My Philosophy</h2>
+    <p class="sheet__chain">AMBIGUITY <i>→</i> ALIGNMENT <i>→</i> EXECUTION <i>→</i> DELIVERY</p>
+    <p class="sheet__pillars">Technical depth · Cross-functional leadership<br>
+       Risk management · Executive communication</p>
+    <ul>
+        <li>Most work arrives as ambiguity, not as a brief. The first job is naming what is actually being asked, and what would count as done.</li>
+        <li>Alignment before execution, every time: nineteen cross-functional teams move together only when they agree on the same definition of finished.</li>
+        <li>Execution is reprioritisation under pressure — the 34-day delivery during a live attack was not a faster plan, it was a smaller one, re-cut daily.</li>
+        <li>Delivery is not the ship date. It is 108k people working, 5,496 stores trading, and a support queue that stays down after the launch team leaves.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+
 <script>
 (function () {
   // CSS drives the parallax wherever scroll-driven animations exist, so this
@@ -1970,10 +2131,11 @@ button.zoom__tile:focus-visible .zoom__more {
 
   // The three knobs from the @supports block up in the stylesheet: --z is done
   // by ZOOM_END of the pin, --v runs SEAM → VID_END, and --k runs VID_END → 1.
-  var ZOOM_END   = 0.2083;
-  var SEAM       = 0.1042;
-  var VID_END    = 0.4375;
-  var SKILLS_END = 0.6875;
+  var ZOOM_END   = 0.1613;
+  var SEAM       = 0.0806;
+  var VID_END    = 0.3387;
+  var SKILLS_END = 0.5323;
+  var BOARD_END  = 0.7742;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
@@ -1985,7 +2147,8 @@ button.zoom__tile:focus-visible .zoom__more {
     root.style.setProperty('--z', clamp01(t / ZOOM_END).toFixed(4));
     root.style.setProperty('--v', clamp01((t - SEAM) / (VID_END - SEAM)).toFixed(4));
     root.style.setProperty('--k', clamp01((t - VID_END) / (SKILLS_END - VID_END)).toFixed(4));
-    root.style.setProperty('--b', clamp01((t - SKILLS_END) / (1 - SKILLS_END)).toFixed(4));
+    root.style.setProperty('--b', clamp01((t - SKILLS_END) / (BOARD_END - SKILLS_END)).toFixed(4));
+    root.style.setProperty('--c', clamp01((t - BOARD_END) / (1 - BOARD_END)).toFixed(4));
   }
 
   function onScroll() {
@@ -2022,9 +2185,10 @@ button.zoom__tile:focus-visible .zoom__more {
   // SKILLS_END → the end of the pin, and between them the skills phase holds
   // the first video's last frame. The second clip opens on that same frame, so
   // handing over is a swap of two identical pictures.
-  var SEAM       = 0.1042;
-  var VID_END    = 0.4375;
-  var SKILLS_END = 0.6875;
+  var SEAM       = 0.0806;
+  var VID_END    = 0.3387;
+  var SKILLS_END = 0.5323;
+  var BOARD_END  = 0.7742;
 
   var zoom = document.getElementById('zoom');
   if (!zoom) return;
@@ -2154,12 +2318,19 @@ button.zoom__tile:focus-visible .zoom__more {
   // connection would starve the clip actually on screen. It still has the whole
   // skills phase — 240vh of scrolling — to arrive before it is needed.
   var clips = [];
-  [['zoom-vid', SEAM, VID_END, -1], ['board-vid', SKILLS_END, 1, 0.24]]
+  [['zoom-vid', SEAM, VID_END, -1], ['board-vid', SKILLS_END, BOARD_END, 0.19]]
     .forEach(function (c) {
       var clip = new Clip(c[0], c[1], c[2], c[3]);
       if (clip) clips.push(clip);
     });
   if (!clips.length) return;
+
+  // The case cards are the one thing on this page a reader is meant to click,
+  // and an overlay at opacity 0 still takes clicks — so without this a card
+  // sitting invisible over the skills phase would quietly swallow a press
+  // aimed at nothing. Gating on a class costs nothing: the cards open
+  // <dialog>s from script, so with no script they were never clickable.
+  var casesLive = false;
 
   function render() {
     queued = false;
@@ -2167,6 +2338,16 @@ button.zoom__tile:focus-visible .zoom__more {
     for (var i = 0; i < clips.length; i++) {
       if (clips[i].warmAt >= 0 && t >= clips[i].warmAt) clips[i].load();
       clips[i].render();
+    }
+    // Bounded at both ends, not just the near one: past 0.92 the overlay has
+    // wiped itself off — the same figure the CSS fades out on — and a card
+    // still taking clicks there would be an invisible target on the last
+    // screen of the page.
+    var c = (t - BOARD_END) / (1 - BOARD_END);
+    var live = c >= 0 && c < 0.92;
+    if (live !== casesLive) {
+      casesLive = live;
+      zoom.classList.toggle('is-cases', live);
     }
   }
 
