@@ -389,10 +389,18 @@ body {
    The three figures below are the only knobs. ZOOM_END is where --z lands,
    SEAM is where --v starts, VID_END is where --v finishes and --k begins;
    all as a fraction of the pin, and all repeated verbatim in the two scripts
-   at the foot of the document, which have to agree with them. At 1100vh the
-   pin is 1000vh, which divides as 200vh of camera move (exactly the run the
-   gallery had before any of this), 400vh of video from the seam, and 500vh of
-   skills — with the first two overlapping across the middle 100vh. */
+   at the foot of the document, which have to agree with them.
+
+   At 760vh the pin is 660vh, which divides as 200vh of camera move (exactly
+   the run the gallery has always had), 320vh of video from the seam, and 240vh
+   of skills — the first two overlapping across the middle 100vh. The odd-
+   looking percentages below are just those lengths over 660; the vh figures
+   are the ones to reason about.
+
+   That puts the video at about 35vh of scroll per second of footage, which is
+   the band where a scrub still feels driven rather than dragged: much under
+   25vh/s and it flicks past, much over 45 and the reader is winding a handle
+   on it. */
 @property --z {
   syntax: "<number>";
   inherits: true;
@@ -429,8 +437,8 @@ body {
 .zoom {
   position: relative;
   /* Pin length: the stage sticks for height − 100vh of scrolling. */
-  height: 1100vh;
-  height: 1100svh;
+  height: 760vh;
+  height: 760svh;
   background: var(--bg);
 }
 
@@ -448,9 +456,9 @@ body {
     animation-timing-function: linear, linear, linear;
     animation-fill-mode: both, both, both;
     animation-timeline: view(), view(), view();
-    animation-range: contain 0% contain 20%,     /* ZOOM_END */
-                     contain 10% contain 50%,    /* SEAM → VID_END */
-                     contain 50% contain 100%;   /* VID_END → the end */
+    animation-range: contain 0% contain 30.3%,      /* ZOOM_END  — 200vh */
+                     contain 15.15% contain 63.64%, /* SEAM      — 320vh */
+                     contain 63.64% contain 100%;   /* VID_END   — 240vh */
   }
 }
 
@@ -705,21 +713,23 @@ body {
 /* -------------------------------------------------------------------------
    The skills, over the landed frame.
 
-   Eight labels, four either side of the file icon, arriving one at a time and
-   then leaving the same way — so the last frame of the pin is the first frame
-   of this phase, the bare desktop, unchanged.
+   Twelve labels, six either side of the file icon, arriving a side at a time
+   and then leaving the same way — so the last frame of the pin is the first
+   frame of this phase, the bare desktop, unchanged.
 
-   All of the timing is per-label arithmetic on --k rather than eight sets of
-   keyframes, which keeps the whole sequence legible as two numbers: a label
-   starts arriving at --i x 0.055 and starts leaving at 0.72 + --i x 0.02. The
-   arrival stagger is the wide one because that is the part being read; the
-   departure is tighter so the eight of them clear the frame together rather
-   than dribbling off. The last to leave is done by 0.98, which leaves a slice
-   of pin at the end holding nothing but the desktop.
+   A side at a time, not a label at a time. Twelve separate beats would want
+   most of a screen each to read and the phase would outstay the video that
+   earned it; two beats of six land in about half a screen of scroll apiece.
+   Inside a side the labels still step by 0.02, which at this phase length is
+   under 5vh — far too little to read as a queue, just enough that the group
+   ripples into place rather than snapping.
 
-   --i is the position in that queue, and it alternates sides: the left column
-   takes the even slots and the right the odd, so the labels land in a zigzag
-   rather than filling one side and then the other.
+   The timing is per-label arithmetic on --k rather than twelve sets of
+   keyframes, and it needs only two inputs: --side (0 left, 1 right) says which
+   half of the sequence a label belongs to, --j its place within that half.
+   Arrivals are 0.24 apart by side; departures only 0.08, so the two columns
+   clear together rather than the second one lingering. Everything is gone by
+   0.90, leaving a tenth of the phase holding nothing but the desktop.
    ------------------------------------------------------------------------- */
 .skills {
   position: absolute;
@@ -731,7 +741,7 @@ body {
   /* Pushed well in from the edges rather than pinned to them: at 4vw the two
      columns sat against the frame with a void between them and the icon, and
      read as page furniture instead of as something flanking it. */
-  padding: 0 clamp(16px, 7vw, 150px);
+  padding: 0 clamp(14px, 5vw, 118px);
   /* The frame underneath is the subject; these are laid over it. */
   pointer-events: none;
 }
@@ -739,24 +749,26 @@ body {
 .skills__col {
   display: flex;
   flex-direction: column;
-  gap: clamp(9px, 2.2vh, 20px);
+  gap: clamp(6px, 1.5vh, 13px);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.skills__col--l { --base: 0; --fx: -74px; --fy: 0px; align-items: flex-start; }
-.skills__col--r { --base: 1; --fx:  74px; --fy: 0px; align-items: flex-end; }
+.skills__col--l { --side: 0; --fx: -74px; --fy: 0px; align-items: flex-start; }
+.skills__col--r { --side: 1; --fx:  74px; --fy: 0px; align-items: flex-end; }
 
-.skill:nth-child(1) { --i: calc(var(--base) + 0); }
-.skill:nth-child(2) { --i: calc(var(--base) + 2); }
-.skill:nth-child(3) { --i: calc(var(--base) + 4); }
-.skill:nth-child(4) { --i: calc(var(--base) + 6); }
+.skill:nth-child(1) { --j: 0; }
+.skill:nth-child(2) { --j: 1; }
+.skill:nth-child(3) { --j: 2; }
+.skill:nth-child(4) { --j: 3; }
+.skill:nth-child(5) { --j: 4; }
+.skill:nth-child(6) { --j: 5; }
 
 .skill {
   /* Raw 0 → 1 ramps for this label's arrival and departure. */
-  --in:  clamp(0, calc((var(--k) - var(--i) * 0.055) / 0.13), 1);
-  --out: clamp(0, calc((var(--k) - 0.72 - var(--i) * 0.02) / 0.12), 1);
+  --in:  clamp(0, calc((var(--k) - var(--side) * 0.24 - var(--j) * 0.020) / 0.13), 1);
+  --out: clamp(0, calc((var(--k) - 0.64 - var(--side) * 0.08 - var(--j) * 0.012) / 0.12), 1);
   /* Eased, because a linear ramp on a scroll-driven move reads as a slide
      rather than a settle: quadratic out on the way in so it decelerates into
      place, quadratic in on the way out so it leaves the way it came. */
@@ -766,7 +778,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.72em;
-  padding: 0.6em 1.05em;
+  padding: 0.52em 0.95em;
   border-radius: 3px;
   /* Near-black on a bright desktop, in the same register as the tile captions
      and the affordance — this page states its overlays rather than frosting
@@ -1124,32 +1136,32 @@ button.zoom__tile:focus-visible .zoom__more {
   .zoom__cap { font-size: 0.52rem; padding: 0.5em 30px 0.5em 0.55em; }
 
   /* There is no room beside the icon on a phone — it is most of the screen —
-     so the two columns become two clusters, one in the band above it and one
-     below, each wrapping its four labels into a block. Same eight, same
-     stagger, same zigzag; they arrive from the near edge instead of the side,
-     which is the only thing --fx and --fy have to change. */
+     so the two columns stack instead of flanking: one group in the band above
+     it, one below. Same twelve, same two beats; they arrive from the near edge
+     rather than from the side, which is all --fx and --fy have to change.
+
+     Centred single file rather than wrapped. Wrapping six labels this long
+     into a 390px column packs two onto the first row and one onto every row
+     after, which reads as an accident; one per row is a list. Six rows at this
+     size come to about 200px, so each group clears the icon with room. */
   .skills {
     flex-direction: column;
     justify-content: space-between;
-    padding: clamp(12px, 3.5vh, 38px) 3vw;
+    padding: clamp(10px, 3vh, 34px) 3vw;
   }
 
   .skills__col {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
     align-items: center;
-    max-width: 82vw;
-    gap: 6px;
+    gap: 5px;
   }
 
-  .skills__col--l { --fx: 0px; --fy: -44px; }
-  .skills__col--r { --fx: 0px; --fy:  44px; }
+  .skills__col--l { --fx: 0px; --fy: -40px; }
+  .skills__col--r { --fx: 0px; --fy:  40px; }
 
   .skill {
-    font-size: clamp(0.54rem, 2.85vw, 0.76rem);
-    padding: 0.48em 0.78em;
-    gap: 0.55em;
+    font-size: clamp(0.52rem, 2.7vw, 0.74rem);
+    padding: 0.42em 0.72em;
+    gap: 0.5em;
   }
 
   /* The ring is 71svh here rather than 85svh, so the header's band is nearly
@@ -1400,22 +1412,31 @@ button.zoom__tile:focus-visible .zoom__more {
     <div class="zoom__focus">
       <span>Cloud infrastructure · Program strategy · Automation · Data &amp; risk</span>
     </div>
-    <!-- The eight, drawn from the role detail below: each one is something the
-         dialogs actually evidence rather than a word off a résumé template.
-         Reading order is down the left column and then the right; the arrival
-         order alternates between them, which is what --base sets. -->
+    <!-- Twelve, named for the terms an applicant tracking system scans for,
+         and ordered so each column is one coherent group: the left builds and
+         automates, the right runs, governs and reports. Each is something the
+         role detail below actually evidences — Copilot Studio and the nine
+         Power Apps behind the AI and automation lines, the Data Factory
+         pipelines and twelve APIs behind integration, the nation-state
+         response and the EU data residency work behind security and
+         compliance, Power BI and SQL Server behind analytics. Arrival order is
+         reading order: the whole left column, then the whole right. -->
     <div class="skills">
-      <ul class="skills__col skills__col--l" aria-label="Core skills">
-        <li class="skill">Program Strategy</li>
-        <li class="skill">Azure Infrastructure</li>
-        <li class="skill">Automation &amp; DevOps</li>
-        <li class="skill">Incident Response</li>
+      <ul class="skills__col skills__col--l" aria-label="Core skills — build and automation">
+        <li class="skill">AI Orchestration</li>
+        <li class="skill">AI-Augmented Development</li>
+        <li class="skill">Business Process Automation</li>
+        <li class="skill">Power Platform Architecture</li>
+        <li class="skill">DevOps &amp; CI/CD Pipelines</li>
+        <li class="skill">API &amp; Systems Integration</li>
       </ul>
-      <ul class="skills__col skills__col--r">
-        <li class="skill">Cross-functional Delivery</li>
-        <li class="skill">Power Platform</li>
-        <li class="skill">Data &amp; Reporting</li>
-        <li class="skill">Compliance &amp; Risk</li>
+      <ul class="skills__col skills__col--r" aria-label="Core skills — delivery and governance">
+        <li class="skill">Technical Program Management</li>
+        <li class="skill">Data &amp; Cloud Infrastructure</li>
+        <li class="skill">Enterprise Governance &amp; Security</li>
+        <li class="skill">Cybersecurity Incident Response</li>
+        <li class="skill">Regulatory &amp; Data Compliance</li>
+        <li class="skill">Business Intelligence &amp; Analytics</li>
       </ul>
     </div>
   </div>
@@ -1549,9 +1570,9 @@ button.zoom__tile:focus-visible .zoom__more {
 
   // The three knobs from the @supports block up in the stylesheet: --z is done
   // by ZOOM_END of the pin, --v runs SEAM → VID_END, and --k runs VID_END → 1.
-  var ZOOM_END = 0.20;
-  var SEAM     = 0.10;
-  var VID_END  = 0.50;
+  var ZOOM_END = 0.3030;
+  var SEAM     = 0.1515;
+  var VID_END  = 0.6364;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
@@ -1599,8 +1620,8 @@ button.zoom__tile:focus-visible .zoom__more {
   // pin, which is halfway through the camera move, and is spent at the
   // halfway mark — from there the frame holds its last still while the skills
   // phase runs out the rest of the pin.
-  var SEAM    = 0.10;
-  var VID_END = 0.50;
+  var SEAM    = 0.1515;
+  var VID_END = 0.6364;
 
   var zoom = document.getElementById('zoom');
   var vid  = document.getElementById('zoom-vid');
