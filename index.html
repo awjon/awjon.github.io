@@ -47,6 +47,14 @@
   --sky-high: #45e3fb;
   --sky-mid: #9deefd;
   --sky-low: #d8f4fd;
+
+  /* The whiteboard the second video lands on, sampled from its last frame:
+     the mean across that frame is #D2D9DD and its bottom edge — the edge the
+     section below actually has to meet — is #D0D7DA. Declared here rather
+     than on .board because the case-study sheets are siblings of that
+     section, not children, and would not inherit them. */
+  --board: #d0d7da;
+  --ink-board: #2b3034;
 }
 
 * { box-sizing: border-box; }
@@ -381,26 +389,33 @@ body {
    plays out the remaining three quarters full screen while the reader keeps
    scrolling.
 
-   --k is the skills, and it takes over where the video stops. The frame is
-   parked on the video's last still for the whole of it, so the eight labels
-   have somewhere quiet to land; the phase ends with every one of them gone
-   again, on exactly the frame it started from.
+   --k is the skills, and it takes over where the first video stops. The frame
+   is parked on that video's last still for the whole of it, so the labels have
+   somewhere quiet to land; the phase ends with every one of them gone again,
+   on exactly the frame it started from.
+
+   --b is the second video, screentoboard.mp4, which begins on the very frame
+   monitorzoom.mp4 ends on — checked, they differ by about 2/255, which is
+   compression noise — and pulls back off the screen to a laptop closing on a
+   desk, then pushes into the whiteboard behind it until the board fills the
+   frame. It runs the rest of the pin, and the case studies below inherit the
+   colour it lands on, so the stage releasing into that section is invisible.
 
    The three figures below are the only knobs. ZOOM_END is where --z lands,
    SEAM is where --v starts, VID_END is where --v finishes and --k begins;
    all as a fraction of the pin, and all repeated verbatim in the two scripts
    at the foot of the document, which have to agree with them.
 
-   At 760vh the pin is 660vh, which divides as 200vh of camera move (exactly
-   the run the gallery has always had), 320vh of video from the seam, and 240vh
-   of skills — the first two overlapping across the middle 100vh. The odd-
-   looking percentages below are just those lengths over 660; the vh figures
-   are the ones to reason about.
+   At 1060vh the pin is 960vh, which divides as 200vh of camera move (exactly
+   the run the gallery has always had), 320vh of the first video from the seam,
+   240vh of skills, and 300vh of the second — with the first two overlapping
+   across the middle 100vh. The odd-looking percentages below are just those
+   lengths over 960; the vh figures are the ones to reason about.
 
-   That puts the video at about 35vh of scroll per second of footage, which is
-   the band where a scrub still feels driven rather than dragged: much under
-   25vh/s and it flicks past, much over 45 and the reader is winding a handle
-   on it. */
+   That puts the two videos at about 35 and 30vh of scroll per second of
+   footage, both inside the band where a scrub still feels driven rather than
+   dragged: much under 25vh/s and it flicks past, much over 45 and the reader
+   is winding a handle on it. */
 @property --z {
   syntax: "<number>";
   inherits: true;
@@ -434,11 +449,22 @@ body {
   to   { --k: 1; }
 }
 
+@property --b {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@keyframes board-progress {
+  from { --b: 0; }
+  to   { --b: 1; }
+}
+
 .zoom {
   position: relative;
   /* Pin length: the stage sticks for height − 100vh of scrolling. */
-  height: 760vh;
-  height: 760svh;
+  height: 1060vh;
+  height: 1060svh;
   background: var(--bg);
 }
 
@@ -451,14 +477,15 @@ body {
    last frame while the skills come and go. */
 @supports (animation-timeline: view()) {
   .zoom {
-    animation-name: zoom-progress, video-progress, skills-progress;
-    animation-duration: auto, auto, auto;
-    animation-timing-function: linear, linear, linear;
-    animation-fill-mode: both, both, both;
-    animation-timeline: view(), view(), view();
-    animation-range: contain 0% contain 30.3%,      /* ZOOM_END  — 200vh */
-                     contain 15.15% contain 63.64%, /* SEAM      — 320vh */
-                     contain 63.64% contain 100%;   /* VID_END   — 240vh */
+    animation-name: zoom-progress, video-progress, skills-progress, board-progress;
+    animation-duration: auto, auto, auto, auto;
+    animation-timing-function: linear, linear, linear, linear;
+    animation-fill-mode: both, both, both, both;
+    animation-timeline: view(), view(), view(), view();
+    animation-range: contain 0% contain 20.83%,        /* ZOOM_END   — 200vh */
+                     contain 10.42% contain 43.75%,    /* SEAM       — 320vh */
+                     contain 43.75% contain 68.75%,    /* VID_END    — 240vh */
+                     contain 68.75% contain 100%;      /* SKILLS_END — 300vh */
   }
 }
 
@@ -560,21 +587,32 @@ body {
   object-position: 50% 50%;
 }
 
-/* The video stays hidden until a frame of it is actually decodable, so a slow
-   connection shows the still held correctly rather than a black rectangle —
-   and so a visitor with no script at all (this page is built to survive being
-   opened from a phone's Downloads) gets the still, full bleed, instead of a
-   video frozen on frame one. The class comes from the scrubber at the foot of
-   the document.
+/* Neither video shows until a frame of it is actually decodable, so a slow
+   connection shows whatever is underneath held correctly rather than a black
+   rectangle — and so a visitor with no script at all (this page is built to
+   survive being opened from a phone's Downloads) gets the still, full bleed,
+   instead of a video frozen on frame one. .is-ready comes from the scrubber at
+   the foot of the document, and sits on the element rather than on the section
+   so that each clip answers for itself.
 
-   The fade is deliberately narrow and sits just past the seam: across it the
-   video is still inside its first fifth of a second, close enough to frame one
-   that the dissolve has nothing to reconcile but the monitor coming on. Wider
-   would only hold a moving image over a static one for longer. */
-.zoom__screen--vid { opacity: 0; }
+   The three layers stack still → first video → second video, and each hands
+   over to the next on a frame the next one already matches. So both fades are
+   narrow: they exist to cover a decode, not to blend two different pictures.
 
-.zoom.is-vid-ready .zoom__screen--vid {
+   The first sits just past the seam, where the video is still inside its first
+   fifth of a second — close enough to frame one that the dissolve has nothing
+   to reconcile but the monitor coming on. The second is narrower still,
+   because screentoboard.mp4 opens on the exact frame monitorzoom.mp4 ends on;
+   there is nothing there to cross-fade, only a swap to cover. */
+.zoom__screen--vid,
+.zoom__screen--board { opacity: 0; }
+
+.zoom__screen--vid.is-ready {
   opacity: clamp(0, calc((var(--z) - 0.5) / 0.04), 1);
+}
+
+.zoom__screen--board.is-ready {
+  opacity: clamp(0, calc(var(--b) / 0.015), 1);
 }
 
 /* The value proposition, now the gallery's header rather than a screen of its
@@ -1288,6 +1326,237 @@ button.zoom__tile:focus-visible .zoom__more {
   .hero__name h1 { font-size: clamp(2rem, 7vw, 4rem); }
 }
 
+/* =========================================================================
+   The whiteboard — where the second video lands, and the page ends.
+   =========================================================================
+
+   screentoboard.mp4 finishes on a whiteboard filling the frame, near enough
+   flat: sampled across that last frame the mean is #D2D9DD with a standard
+   deviation under 4. So this section simply IS that colour. The sticky stage
+   is still showing the board when the pin releases and this scrolls up behind
+   it, and because the two match there is no visible join — the reader does not
+   cross from a video into a page, they just carry on up the board.
+   ------------------------------------------------------------------------- */
+
+/* Permanent Marker by Font Diner, Apache License 2.0, from Google Fonts.
+   Embedded rather than linked because this page is a self-contained build that
+   has to render opened straight from a filesystem, with no network at all — a
+   <link> to a font CDN would quietly drop the whole conceit on the one reader
+   most likely to be looking offline. Subset to letters, digits and the
+   punctuation a heading might pick up, which is 18KB rather than 30. */
+@font-face {
+  font-family: 'Marker Board';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(data:font/woff2;base64,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) format('woff2');
+}
+
+.board {
+  background-color: var(--board);
+  color: var(--ink-board);
+  padding: clamp(48px, 9vh, 104px) 6vw clamp(64px, 12vh, 128px);
+  /* The faint bloom a board picks up from the room light, so the section does
+     not read flatter than the frame it continues. It starts at zero: the very
+     top edge of this section is the flat sampled colour and nothing else,
+     because that edge butts directly onto the video's bottom edge as the pin
+     releases. Any lightening there would draw a line straight across the join,
+     which is exactly what a radial centred near the top did. */
+  background-image: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.26) 34%,
+                    rgba(255, 255, 255, 0.12) 100%);
+}
+
+.board__inner { max-width: 960px; margin: 0 auto; }
+
+.board__head {
+  font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 5.2vw, 3.1rem);
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+  margin: 0;
+  /* Marker on a board is never quite level. */
+  transform: rotate(-1.1deg);
+  transform-origin: left center;
+}
+
+/* The stroke under the heading, drawn the way someone underlines a title on a
+   board: one pass, thicker in the middle, not quite parallel to the words. */
+.board__rule {
+  width: clamp(150px, 22vw, 260px);
+  height: 7px;
+  margin: 14px 0 0 2px;
+  border-radius: 50%;
+  background: linear-gradient(90deg,
+              rgba(43, 48, 52, 0.25), rgba(43, 48, 52, 0.9) 34%,
+              rgba(43, 48, 52, 0.85) 68%, rgba(43, 48, 52, 0.18));
+  transform: rotate(-0.7deg);
+}
+
+.board__sub {
+  margin: 22px 0 clamp(30px, 5vh, 52px);
+  max-width: 46ch;
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  line-height: 1.55;
+  color: rgba(43, 48, 52, 0.72);
+}
+
+.board__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  /* Two up, deliberately, rather than auto-fit: there are exactly four of
+     these and auto-fit resolves to three columns at this width, which strands
+     the fourth alone on a second row with two empty cells beside it. */
+  grid-template-columns: 1fr;
+  gap: clamp(18px, 2.6vw, 30px);
+}
+
+@media (min-width: 720px) {
+  .board__grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Each study is a box someone drew around what they wrote. The border is the
+   marker colour at low alpha, the radius is deliberately uneven on each corner
+   so no two corners read as machine-made, and the whole card sits a fraction
+   off square — alternating direction down the grid so it looks written rather
+   than skewed. */
+.case {
+  --marker: #2b3034;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: clamp(20px, 2.6vw, 30px) clamp(18px, 2.4vw, 28px) clamp(18px, 2.2vw, 26px);
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.34);
+  border: 2px solid color-mix(in srgb, var(--marker) 38%, transparent);
+  border-radius: 14px 7px 16px 9px;
+  transform: rotate(-0.45deg);
+  transition: transform 220ms ease, background-color 220ms ease,
+              border-color 220ms ease, box-shadow 220ms ease;
+}
+
+/* color-mix is recent enough to be worth a floor: without it the border falls
+   back to the marker colour at full strength, which is heavier than intended
+   but still correct, never invisible. */
+@supports not (color: color-mix(in srgb, red 50%, transparent)) {
+  .case { border-color: rgba(43, 48, 52, 0.38); }
+}
+
+.board__grid li:nth-child(even) .case { transform: rotate(0.5deg); }
+
+.case:hover,
+.case:focus-visible {
+  transform: rotate(0deg) translateY(-3px);
+  background: rgba(255, 255, 255, 0.62);
+  border-color: color-mix(in srgb, var(--marker) 78%, transparent);
+  box-shadow: 0 10px 26px rgba(43, 48, 52, 0.14);
+}
+
+.case:focus-visible { outline: 2px solid var(--marker); outline-offset: 4px; }
+
+.case__n {
+  font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 0.98rem;
+  color: var(--marker);
+  opacity: 0.62;
+}
+
+.case__title {
+  font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: clamp(1.18rem, 2.3vw, 1.6rem);
+  line-height: 1.16;
+  color: var(--marker);
+}
+
+.case__meta {
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(43, 48, 52, 0.58);
+}
+
+.case__result {
+  margin-top: 2px;
+  font-size: clamp(0.88rem, 1.35vw, 0.98rem);
+  line-height: 1.5;
+  color: rgba(43, 48, 52, 0.88);
+}
+
+/* Pushed to the bottom of the card so the four affordances line up across the
+   grid however unevenly the copy above them falls. */
+.case__more {
+  margin-top: auto;
+  padding-top: 12px;
+  font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 0.95rem;
+  color: var(--marker);
+  opacity: 0.78;
+  transition: opacity 220ms ease;
+}
+
+.case:hover .case__more,
+.case:focus-visible .case__more { opacity: 1; }
+
+/* The four marker colours, in the order a set of board pens comes in. */
+.case--k { --marker: #2b3034; }
+.case--b { --marker: #1d5fa6; }
+.case--g { --marker: #1c7a4c; }
+.case--r { --marker: #b23a2c; }
+
+/* The detail sheets open on the board rather than over the dark page, so they
+   keep the section's register instead of punching a hole in it. */
+.sheet--board::backdrop { background: rgba(120, 132, 140, 0.62); }
+
+.sheet--board .sheet__panel {
+  background: #eef2f4;
+  border-color: rgba(43, 48, 52, 0.16);
+  color: var(--ink-board);
+}
+
+.sheet--board .sheet__panel h2 {
+  font-family: 'Marker Board', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: 400;
+  letter-spacing: 0.004em;
+  /* .sheet__panel h2 is var(--ink) — the dark page's near-white — which is
+     invisible on this panel. */
+  color: var(--marker, var(--ink-board));
+}
+
+.sheet--board .sheet__meta { color: rgba(43, 48, 52, 0.6); }
+
+/* .sheet__panel li::before already draws its bullet from --accent, so the
+   marker colour carries through from the card into its sheet. */
+.sheet--board.sheet--k { --accent: #2b3034; --marker: #2b3034; }
+.sheet--board.sheet--b { --accent: #1d5fa6; --marker: #1d5fa6; }
+.sheet--board.sheet--g { --accent: #1c7a4c; --marker: #1c7a4c; }
+.sheet--board.sheet--r { --accent: #b23a2c; --marker: #b23a2c; }
+.sheet--board .sheet__panel li { color: rgba(43, 48, 52, 0.88); }
+
+.sheet--board .sheet__close {
+  color: var(--ink-board);
+  border-color: rgba(43, 48, 52, 0.3);
+  background: rgba(43, 48, 52, 0.06);
+}
+
+@media (max-width: 560px) {
+  .board { padding-left: 5vw; padding-right: 5vw; }
+  .board__grid { grid-template-columns: 1fr; }
+}
+
 /* Motion is deliberately NOT reduced under prefers-reduced-motion. The
    parallax is the substance of this page rather than decoration, and it is
    scroll-driven — it only advances as far as the reader scrolls, and stops
@@ -1326,19 +1595,25 @@ button.zoom__tile:focus-visible .zoom__more {
            own opening framing with the monitor dark, so the two stack in one
            box and the handoff is a dissolve on the screen alone.
 
-           preload="metadata" only: this is 4MB sitting three viewports down,
-           and the hero should not be waiting on it. The scrubber at the foot
-           of the document pulls the rest as the section comes into range. -->
+           The first video is preload="metadata" only and the second not at
+           all: this is six megabytes sitting several viewports down and the
+           hero should not be waiting on any of it. The scrubber at the foot of
+           the document pulls the first as the section comes into range and the
+           second only once the reader is committed to the flight, so the two
+           never compete for the connection. -->
       <div class="zoom__tile">
         <img class="zoom__screen" src="assets/monitorstill.jpg" decoding="async"
              alt="A desk under a wall-mounted lamp: a wide monitor, a mechanical keyboard on a walnut rest, a phone and two plants.">
         <video class="zoom__screen zoom__screen--vid" id="zoom-vid"
                src="assets/monitorzoom.mp4" preload="metadata"
                muted playsinline disablepictureinpicture aria-hidden="true"></video>
+        <video class="zoom__screen zoom__screen--board" id="board-vid"
+               src="assets/screentoboard.mp4" preload="none"
+               muted playsinline disablepictureinpicture aria-hidden="true"></video>
       </div>
     </div>
     <div class="zoom__layer">
-      <button class="zoom__tile" type="button" data-role="msrc"
+      <button class="zoom__tile" type="button" data-sheet="msrc"
               aria-haspopup="dialog" aria-label="Microsoft, Technical Program Manager, Security Response Center, 2022–2025. Open detail.">
         <span class="zoom__cap">
           <b>Microsoft</b>
@@ -1350,7 +1625,7 @@ button.zoom__tile:focus-visible .zoom__more {
       </button>
     </div>
     <div class="zoom__layer">
-      <button class="zoom__tile" type="button" data-role="fasttrack"
+      <button class="zoom__tile" type="button" data-sheet="fasttrack"
               aria-haspopup="dialog" aria-label="Microsoft, Technical Program Manager, Fast Track, 2020–2022. Open detail.">
         <span class="zoom__cap">
           <b>Microsoft</b>
@@ -1362,7 +1637,7 @@ button.zoom__tile:focus-visible .zoom__more {
       </button>
     </div>
     <div class="zoom__layer">
-      <button class="zoom__tile" type="button" data-role="starbucks"
+      <button class="zoom__tile" type="button" data-sheet="starbucks"
               aria-haspopup="dialog" aria-label="Starbucks, Technical Product Manager, Retail Platform Engineering, 2019–2020. Open detail.">
         <span class="zoom__cap">
           <b>Starbucks</b>
@@ -1374,7 +1649,7 @@ button.zoom__tile:focus-visible .zoom__more {
       </button>
     </div>
     <div class="zoom__layer">
-      <button class="zoom__tile" type="button" data-role="marketplace"
+      <button class="zoom__tile" type="button" data-sheet="marketplace"
               aria-haspopup="dialog" aria-label="Microsoft, Business Analyst, Azure Marketplace, 2017–2018. Open detail.">
         <span class="zoom__cap">
           <b>Microsoft</b>
@@ -1386,7 +1661,7 @@ button.zoom__tile:focus-visible .zoom__more {
       </button>
     </div>
     <div class="zoom__layer">
-      <button class="zoom__tile" type="button" data-role="incentives"
+      <button class="zoom__tile" type="button" data-sheet="incentives"
               aria-haspopup="dialog" aria-label="Microsoft, Program Manager, Incentives, 2015–2017. Open detail.">
         <span class="zoom__cap">
           <b>Microsoft</b>
@@ -1398,7 +1673,7 @@ button.zoom__tile:focus-visible .zoom__more {
       </button>
     </div>
     <div class="zoom__layer">
-      <button class="zoom__tile" type="button" data-role="illinois"
+      <button class="zoom__tile" type="button" data-sheet="illinois"
               aria-haspopup="dialog" aria-label="Education and certification. University of Illinois, BS Management and BS Marketing. Open detail.">
         <span class="zoom__cap">
           <b>Education / Certification</b>
@@ -1442,12 +1717,75 @@ button.zoom__tile:focus-visible .zoom__more {
   </div>
 </div>
 
+
+<!-- The whiteboard. screentoboard.mp4 lands on this exact colour, and the pin
+     releases straight into it, so the reader carries on up the board rather
+     than crossing out of a video into a page. Four studies, one per marker. -->
+<section class="board" id="case-studies">
+  <div class="board__inner">
+    <h2 class="board__head">Case studies</h2>
+    <div class="board__rule"></div>
+    <p class="board__sub">Four problems that arrived without a plan attached, and what
+       came out the other side.</p>
+    <ul class="board__grid">
+      <li>
+        <button class="case case--k" type="button" data-sheet="case-attack"
+                aria-haspopup="dialog"
+                aria-label="Case study: 34 days under fire. Microsoft Security Response Center, 2022 to 2025. Open detail.">
+          <span class="case__n">01</span>
+          <span class="case__title">34 days under fire</span>
+          <span class="case__meta">Microsoft · Security Response Center · 2022–2025</span>
+          <span class="case__result">Critical infrastructure stood up in 34 days, while the
+            attack was still live.</span>
+          <span class="case__more">Read it →</span>
+        </button>
+      </li>
+      <li>
+        <button class="case case--b" type="button" data-sheet="case-residency"
+                aria-haspopup="dialog"
+                aria-label="Case study: 108,000 users, three jurisdictions. Microsoft Security Response Center, 2022 to 2025. Open detail.">
+          <span class="case__n">02</span>
+          <span class="case__title">108,000 users, three jurisdictions</span>
+          <span class="case__meta">Microsoft · Security Response Center · 2022–2025</span>
+          <span class="case__result">Remote work for 108k people without breaching EU data
+            residency in any of them.</span>
+          <span class="case__more">Read it →</span>
+        </button>
+      </li>
+      <li>
+        <button class="case case--g" type="button" data-sheet="case-sixtyone"
+                aria-haspopup="dialog"
+                aria-label="Case study: automating a 61 million dollar business. Microsoft Fast Track, 2020 to 2022. Open detail.">
+          <span class="case__n">03</span>
+          <span class="case__title">Automating a $61M business</span>
+          <span class="case__meta">Microsoft · Fast Track · 2020–2022</span>
+          <span class="case__result">Thirty percent more throughput and lead times halved,
+            on nine Power Apps.</span>
+          <span class="case__more">Read it →</span>
+        </button>
+      </li>
+      <li>
+        <button class="case case--r" type="button" data-sheet="case-ubereats"
+                aria-haspopup="dialog"
+                aria-label="Case study: UberEats to 5,496 stores. Starbucks Retail Platform Engineering, 2019 to 2020. Open detail.">
+          <span class="case__n">04</span>
+          <span class="case__title">UberEats to 5,496 stores</span>
+          <span class="case__meta">Starbucks · Retail Platform Engineering · 2019–2020</span>
+          <span class="case__result">$4.1M in new revenue, and a support queue that fell
+            by 95%.</span>
+          <span class="case__more">Read it →</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</section>
+
 <!-- Role detail, one dialog per openable tile. Modal <dialog> gives the
      Escape key, the focus trap and focus return to the tile for free. -->
-<dialog class="sheet" id="role-msrc" aria-labelledby="role-msrc-title">
+<dialog class="sheet" id="sheet-msrc" aria-labelledby="sheet-msrc-title">
   <div class="sheet__panel">
     <p class="sheet__meta">2022–2025 · Digital Security and Resilience</p>
-    <h2 id="role-msrc-title">Microsoft — Technical Program Manager, Security Response Center</h2>
+    <h2 id="sheet-msrc-title">Microsoft — Technical Program Manager, Security Response Center</h2>
     <ul>
         <li>Led program strategy for Azure Virtual Desktop Infrastructure with tenant isolation, serving global teams of 100k+ end users.</li>
         <li>Delivered critical infrastructure in 34 days during an active nation-state cyber attack, through real-time reprioritisation.</li>
@@ -1459,10 +1797,10 @@ button.zoom__tile:focus-visible .zoom__more {
     </form>
   </div>
 </dialog>
-<dialog class="sheet" id="role-fasttrack" aria-labelledby="role-fasttrack-title">
+<dialog class="sheet" id="sheet-fasttrack" aria-labelledby="sheet-fasttrack-title">
   <div class="sheet__panel">
     <p class="sheet__meta">2020–2022 · via Avenue In Consulting</p>
-    <h2 id="role-fasttrack-title">Microsoft — Technical Program Manager, Fast Track</h2>
+    <h2 id="sheet-fasttrack-title">Microsoft — Technical Program Manager, Fast Track</h2>
     <ul>
         <li>Led DevOps and automation programs driving growth for a $61M incentive business.</li>
         <li>Increased processing capacity 30% by launching 9 Power Apps and 30+ automation products across 3 portals.</li>
@@ -1474,10 +1812,10 @@ button.zoom__tile:focus-visible .zoom__more {
     </form>
   </div>
 </dialog>
-<dialog class="sheet" id="role-starbucks" aria-labelledby="role-starbucks-title">
+<dialog class="sheet" id="sheet-starbucks" aria-labelledby="sheet-starbucks-title">
   <div class="sheet__panel">
     <p class="sheet__meta">2019–2020 · via Collabera</p>
-    <h2 id="role-starbucks-title">Starbucks — Technical Product Manager, Retail Platform Engineering</h2>
+    <h2 id="sheet-starbucks-title">Starbucks — Technical Product Manager, Retail Platform Engineering</h2>
     <ul>
         <li>Launched the UberEats program to 5,496 stores across North America, adding $4.1M in revenue.</li>
         <li>Reduced delivery support queues 95% by building the knowledge base and training.</li>
@@ -1489,10 +1827,10 @@ button.zoom__tile:focus-visible .zoom__more {
     </form>
   </div>
 </dialog>
-<dialog class="sheet" id="role-marketplace" aria-labelledby="role-marketplace-title">
+<dialog class="sheet" id="sheet-marketplace" aria-labelledby="sheet-marketplace-title">
   <div class="sheet__panel">
     <p class="sheet__meta">2017–2018 · via Unify Consulting</p>
-    <h2 id="role-marketplace-title">Microsoft — Business Analyst, Azure Marketplace</h2>
+    <h2 id="sheet-marketplace-title">Microsoft — Business Analyst, Azure Marketplace</h2>
     <ul>
         <li>Ran the DevOps support program for all Azure Marketplace cloud products and apps.</li>
         <li>Reduced time to resolution 60% through root-cause analysis, documentation and lean implementation.</li>
@@ -1504,10 +1842,10 @@ button.zoom__tile:focus-visible .zoom__more {
     </form>
   </div>
 </dialog>
-<dialog class="sheet" id="role-incentives" aria-labelledby="role-incentives-title">
+<dialog class="sheet" id="sheet-incentives" aria-labelledby="sheet-incentives-title">
   <div class="sheet__panel">
     <p class="sheet__meta">2015–2017 · via Tata Consultancy Services</p>
-    <h2 id="role-incentives-title">Microsoft — Program Manager, Incentives</h2>
+    <h2 id="sheet-incentives-title">Microsoft — Program Manager, Incentives</h2>
     <ul>
         <li>Validated co-op marketing initiatives across the global Microsoft Partner Network.</li>
         <li>Led a team of 6 managers and 16 processors across Windows, Xbox, MSN and Bing.</li>
@@ -1519,13 +1857,75 @@ button.zoom__tile:focus-visible .zoom__more {
     </form>
   </div>
 </dialog>
-<dialog class="sheet" id="role-illinois" aria-labelledby="role-illinois-title">
+<dialog class="sheet" id="sheet-illinois" aria-labelledby="sheet-illinois-title">
   <div class="sheet__panel">
     <p class="sheet__meta">University of Illinois</p>
-    <h2 id="role-illinois-title">Education / Certification</h2>
+    <h2 id="sheet-illinois-title">Education / Certification</h2>
     <ul>
         <li>Bachelor of Science in Management; Bachelor of Science in Marketing.</li>
         <li>Also certified: Microsoft Azure Fundamentals, and Salesforce Trailhead — Salesforce Developer.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+
+<!-- Case-study detail. Same sheet mechanism as the roles — the script keys off
+     data-sheet and the matching id — but dressed for the board rather than the
+     dark page, and each carries the marker colour of the card it opened from. -->
+<dialog class="sheet sheet--board sheet--k" id="sheet-case-attack" aria-labelledby="sheet-case-attack-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">Case study 01 · Microsoft · 2022–2025</p>
+    <h2 id="sheet-case-attack-title">34 days under fire</h2>
+    <ul>
+        <li>Led program strategy for Azure Virtual Desktop Infrastructure with tenant isolation, serving global teams of 100k+ end users.</li>
+        <li>Delivered critical infrastructure in 34 days during an active nation-state cyber attack, through real-time reprioritisation.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+
+<dialog class="sheet sheet--board sheet--b" id="sheet-case-residency" aria-labelledby="sheet-case-residency-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">Case study 02 · Microsoft · 2022–2025</p>
+    <h2 id="sheet-case-residency-title">108,000 users, three jurisdictions</h2>
+    <ul>
+        <li>Enabled remote work for 108k users while meeting EU data residency compliance across three European operations.</li>
+        <li>Reduced manual approvals and deployments 65% with Copilot Studio and Power Platform, cutting onboarding by 3 days.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+
+<dialog class="sheet sheet--board sheet--g" id="sheet-case-sixtyone" aria-labelledby="sheet-case-sixtyone-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">Case study 03 · Microsoft Fast Track · 2020–2022</p>
+    <h2 id="sheet-case-sixtyone-title">Automating a $61M business</h2>
+    <ul>
+        <li>Led DevOps and automation programs driving growth for a $61M incentive business.</li>
+        <li>Increased processing capacity 30% by launching 9 Power Apps and 30+ automation products across 3 portals.</li>
+        <li>Reduced lead times 53% with iterative releases and continuous discovery with leadership.</li>
+        <li>Integrated 19 cross-functional teams; architected 3 Azure Data Factory pipelines and 12 APIs.</li>
+    </ul>
+    <form method="dialog">
+      <button class="sheet__close" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
+
+<dialog class="sheet sheet--board sheet--r" id="sheet-case-ubereats" aria-labelledby="sheet-case-ubereats-title">
+  <div class="sheet__panel">
+    <p class="sheet__meta">Case study 04 · Starbucks · 2019–2020</p>
+    <h2 id="sheet-case-ubereats-title">UberEats to 5,496 stores</h2>
+    <ul>
+        <li>Launched the UberEats program to 5,496 stores across North America, adding $4.1M in revenue.</li>
+        <li>Reduced delivery support queues 95% by building the knowledge base and training.</li>
+        <li>Reopened 500+ stores affected by the pandemic, standing up store delivery systems as BCDR.</li>
     </ul>
     <form method="dialog">
       <button class="sheet__close" type="submit">Close</button>
@@ -1570,9 +1970,10 @@ button.zoom__tile:focus-visible .zoom__more {
 
   // The three knobs from the @supports block up in the stylesheet: --z is done
   // by ZOOM_END of the pin, --v runs SEAM → VID_END, and --k runs VID_END → 1.
-  var ZOOM_END = 0.3030;
-  var SEAM     = 0.1515;
-  var VID_END  = 0.6364;
+  var ZOOM_END   = 0.2083;
+  var SEAM       = 0.1042;
+  var VID_END    = 0.4375;
+  var SKILLS_END = 0.6875;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
@@ -1583,7 +1984,8 @@ button.zoom__tile:focus-visible .zoom__more {
     var t = pin(zoom, zoomSpan);
     root.style.setProperty('--z', clamp01(t / ZOOM_END).toFixed(4));
     root.style.setProperty('--v', clamp01((t - SEAM) / (VID_END - SEAM)).toFixed(4));
-    root.style.setProperty('--k', clamp01((t - VID_END) / (1 - VID_END)).toFixed(4));
+    root.style.setProperty('--k', clamp01((t - VID_END) / (SKILLS_END - VID_END)).toFixed(4));
+    root.style.setProperty('--b', clamp01((t - SKILLS_END) / (1 - SKILLS_END)).toFixed(4));
   }
 
   function onScroll() {
@@ -1607,157 +2009,201 @@ button.zoom__tile:focus-visible .zoom__more {
 
 <script>
 (function () {
-  // The scroll-scrubbed flight into the monitor.
+  // The two scroll-scrubbed videos.
   //
-  // This one always runs. Everything else on the page is expressible as CSS
+  // This block always runs. Everything else on the page is expressible as CSS
   // driven by a scroll timeline, but currentTime is not a style — no timeline
-  // can set it — so this block cannot stand down the way the parallax fallback
-  // above does, and it carries its own copy of the pin arithmetic rather than
+  // can set it — so this cannot stand down the way the parallax fallback above
+  // does, and it carries its own copy of the pin arithmetic rather than
   // reaching into a script that may have returned on line one.
   //
-  // The same two figures as in the stylesheet's animation-range and in the
-  // fallback above: the video's clock starts a tenth of the way through the
-  // pin, which is halfway through the camera move, and is spent at the
-  // halfway mark — from there the frame holds its last still while the skills
-  // phase runs out the rest of the pin.
-  var SEAM    = 0.1515;
-  var VID_END = 0.6364;
+  // Two clips, one mechanism. The figures are the same ones the stylesheet's
+  // animation-range uses: the first video runs SEAM → VID_END, the second
+  // SKILLS_END → the end of the pin, and between them the skills phase holds
+  // the first video's last frame. The second clip opens on that same frame, so
+  // handing over is a swap of two identical pictures.
+  var SEAM       = 0.1042;
+  var VID_END    = 0.4375;
+  var SKILLS_END = 0.6875;
 
   var zoom = document.getElementById('zoom');
-  var vid  = document.getElementById('zoom-vid');
-  if (!zoom || !vid) return;
+  if (!zoom) return;
 
-  var span = 1, dur = 0, queued = false;
-  var target = 0, applied = -1;
-
-  // The file's own URL, read now because currentSrc is still empty until
-  // loading starts. Keeping it is what lets a blob that turns out not to be
-  // decodable be handed back to the network stack instead of losing the video
-  // outright: whatever went wrong with the copy, the original may still play.
-  var netSrc = vid.src;
-  var reverted = false;
+  var span = 1, queued = false;
 
   function measure() { span = Math.max(1, zoom.offsetHeight - innerHeight); }
+  function pin() { return -zoom.getBoundingClientRect().top / span; }
 
-  function progress() {
-    var t = (-zoom.getBoundingClientRect().top / span - SEAM) / (VID_END - SEAM);
-    return t < 0 ? 0 : t > 1 ? 1 : t;
+  function Clip(id, from, to, warmAt) {
+    var vid = document.getElementById(id);
+    if (!vid) return null;
+
+    var self = this;
+    var dur = 0, target = 0, applied = -1;
+    // The file's own URL, read now because currentSrc is empty until loading
+    // starts. Keeping it is what lets a blob that turns out not to be decodable
+    // be handed back to the network stack rather than losing the video
+    // outright: whatever went wrong with the copy, the original may still play.
+    var netSrc = vid.src, reverted = false, loading = false;
+
+    self.warmAt = warmAt;
+
+    function progress() {
+      var t = (pin() - from) / (to - from);
+      return t < 0 ? 0 : t > 1 ? 1 : t;
+    }
+
+    // Backpressure rather than a firehose. Seeking while a seek is in flight is
+    // legal but wasteful, so the newest position is parked and applied when the
+    // engine comes back — which is also why 'seeked' calls straight back in
+    // here, to catch up on however far the scroll ran in the meantime.
+    function apply() {
+      if (!dur || vid.seeking) return;
+      if (Math.abs(target - applied) < 0.01) return;
+      applied = target;
+      try { vid.currentTime = target; } catch (e) {}
+    }
+
+    self.render = function () {
+      // A hair short of the end: seeking to exactly the duration can land past
+      // the last sample and leave the element showing nothing.
+      if (!dur) return;
+      target = progress() * (dur - 0.04);
+      apply();
+    };
+
+    self.remeasure = function () { applied = -1; };
+
+    vid.addEventListener('seeked', apply);
+
+    vid.addEventListener('error', function () {
+      if (reverted || vid.src.slice(0, 5) !== 'blob:') return;
+      reverted = true;
+      URL.revokeObjectURL(vid.src);
+      vid.src = netSrc;
+      vid.load();
+    });
+
+    vid.addEventListener('loadedmetadata', function () {
+      dur = vid.duration || 0;
+      measure();
+      applied = -1;
+      self.render();
+    });
+
+    // One decodable frame is the bar for letting a clip show at all; until then
+    // whatever is underneath holds the frame. See .is-ready in the CSS.
+    vid.addEventListener('loadeddata', function () { vid.classList.add('is-ready'); });
+
+    // iOS will not decode or seek an inline video it considers untouched. A
+    // muted inline video is allowed to autoplay, so starting and immediately
+    // stopping it is enough to unlock seeking without asking for a gesture; if
+    // the promise is rejected, the first touch anywhere does the same job.
+    function unlock() {
+      var p = vid.play();
+      if (p && p.then) p.then(function () { vid.pause(); }, function () {});
+    }
+
+    // Fetching the file whole and seeking inside a blob is the difference
+    // between a scrub and a stutter: it retires every range request up front,
+    // so no seek can land on a byte range the browser has yet to ask for. It
+    // needs a real origin — from a file:// page the fetch fails and there is
+    // nothing lost by falling back on the network stack's own buffering.
+    self.load = function () {
+      if (loading) return;
+      loading = true;
+      vid.preload = 'auto';
+
+      if (location.protocol === 'file:' || typeof fetch !== 'function' ||
+          !window.URL || !URL.createObjectURL) {
+        vid.load();
+        unlock();
+        return;
+      }
+
+      var mime = 'video/mp4';
+
+      fetch(netSrc).then(function (r) {
+        if (!r.ok) throw 0;
+        // A blob carries only the type it is given, and a response with no
+        // Content-Type at all would hand the demuxer a typeless one. Take the
+        // server at its word when it names a video type, and otherwise say
+        // what this file actually is.
+        var ct = r.headers.get('content-type') || '';
+        if (ct.slice(0, 6) === 'video/') mime = ct;
+        return r.arrayBuffer();
+      }).then(function (buf) {
+        var at = applied > 0 ? applied : 0;
+        vid.src = URL.createObjectURL(new Blob([buf], { type: mime }));
+        vid.addEventListener('loadedmetadata', function once() {
+          vid.removeEventListener('loadedmetadata', once);
+          try { vid.currentTime = at; } catch (e) {}
+          applied = at;
+        });
+        unlock();
+      }).catch(function () {
+        vid.load();
+        unlock();
+      });
+    };
   }
 
-  // Backpressure rather than a firehose. Seeking while a seek is in flight is
-  // legal but wasteful, so the newest position is parked and applied when the
-  // engine comes back — which is also why 'seeked' calls straight back in
-  // here, to catch up on however far the scroll ran in the meantime.
-  function apply() {
-    if (!dur || vid.seeking) return;
-    if (Math.abs(target - applied) < 0.01) return;
-    applied = target;
-    try { vid.currentTime = target; } catch (e) {}
-  }
+  // warmAt is how far into the pin to start fetching each clip. The first is
+  // pulled as the section comes into range; the second waits until the reader
+  // is committed to the flight, because six megabytes of video competing on one
+  // connection would starve the clip actually on screen. It still has the whole
+  // skills phase — 240vh of scrolling — to arrive before it is needed.
+  var clips = [];
+  [['zoom-vid', SEAM, VID_END, -1], ['board-vid', SKILLS_END, 1, 0.24]]
+    .forEach(function (c) {
+      var clip = new Clip(c[0], c[1], c[2], c[3]);
+      if (clip) clips.push(clip);
+    });
+  if (!clips.length) return;
 
   function render() {
     queued = false;
-    // A hair short of the end: seeking to exactly the duration can land past
-    // the last sample and leave the element showing nothing.
-    if (dur) { target = progress() * (dur - 0.04); apply(); }
+    var t = pin();
+    for (var i = 0; i < clips.length; i++) {
+      if (clips[i].warmAt >= 0 && t >= clips[i].warmAt) clips[i].load();
+      clips[i].render();
+    }
   }
 
   function onScroll() {
     if (!queued) { queued = true; requestAnimationFrame(render); }
   }
 
-  vid.addEventListener('seeked', apply);
-
-  vid.addEventListener('error', function () {
-    if (reverted || vid.src.slice(0, 5) !== 'blob:') return;
-    reverted = true;
-    URL.revokeObjectURL(vid.src);
-    vid.src = netSrc;
-    vid.load();
-  });
-
-  vid.addEventListener('loadedmetadata', function () {
-    dur = vid.duration || 0;
-    measure();
-    applied = -1;
-    render();
-  });
-
-  // One decodable frame is the bar for letting the video show at all; until
-  // then the still underneath holds the frame. See .is-vid-ready in the CSS.
-  vid.addEventListener('loadeddata', function () {
-    zoom.classList.add('is-vid-ready');
-  });
-
-  // iOS will not decode or seek an inline video it considers untouched. A
-  // muted inline video is allowed to autoplay, so starting and immediately
-  // stopping it is enough to unlock seeking without asking for a gesture; if
-  // the promise is rejected, the first touch anywhere does the same job.
-  function unlock() {
-    var p = vid.play();
-    if (p && p.then) p.then(function () { vid.pause(); }, function () {});
-  }
-
-  // Fetching the file whole and seeking inside a blob is the difference
-  // between a scrub and a stutter: it retires every range request up front, so
-  // no seek can land on a byte range the browser has yet to ask for. It needs
-  // a real origin — from a file:// page the fetch fails and there is nothing
-  // lost by falling back on the network stack's own buffering.
-  function load() {
-    vid.preload = 'auto';
-
-    if (location.protocol === 'file:' || typeof fetch !== 'function' ||
-        !window.URL || !URL.createObjectURL) {
-      vid.load();
-      unlock();
-      return;
-    }
-
-    var mime = 'video/mp4';
-
-    fetch(netSrc).then(function (r) {
-      if (!r.ok) throw 0;
-      // A blob carries only the type it is given, and a response with no
-      // Content-Type at all would hand the demuxer a typeless one. Take the
-      // server at its word when it names a video type, and otherwise say what
-      // this file actually is.
-      var ct = r.headers.get('content-type') || '';
-      if (ct.slice(0, 6) === 'video/') mime = ct;
-      return r.arrayBuffer();
-    }).then(function (buf) {
-      var at = applied > 0 ? applied : 0;
-      vid.src = URL.createObjectURL(new Blob([buf], { type: mime }));
-      vid.addEventListener('loadedmetadata', function once() {
-        vid.removeEventListener('loadedmetadata', once);
-        try { vid.currentTime = at; } catch (e) {}
-        applied = at;
-      });
-      unlock();
-    }).catch(function () {
-      vid.load();
-      unlock();
-    });
-  }
-
-  // Not on page load: this is 4MB three viewports down, and the hero has to
-  // paint first. One viewport of warning is enough to have it decoded and
-  // seekable by the time the seam arrives, which is two further viewports on.
+  // Not on page load: this is megabytes of video several viewports down, and
+  // the hero has to paint first. One viewport of warning is enough for the
+  // first clip to be decoded and seekable by the time the seam arrives.
   if (window.IntersectionObserver) {
     var io = new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) return;
       io.disconnect();
-      load();
+      clips[0].load();
     }, { rootMargin: '100% 0px' });
     io.observe(zoom);
   } else {
-    load();
+    clips.forEach(function (c) { c.load(); });
+  }
+
+  // A resize changes the pin's length, so every clip's parked position is
+  // stale: clearing it forces the next render to seek rather than to decide it
+  // is already close enough.
+  function remeasure() {
+    measure();
+    clips.forEach(function (c) { c.remeasure(); });
+    onScroll();
   }
 
   measure();
+  render();
+
   addEventListener('scroll', onScroll, { passive: true });
-  addEventListener('resize', function () { measure(); onScroll(); });
+  addEventListener('resize', remeasure);
   if (window.visualViewport) {
-    visualViewport.addEventListener('resize', function () { measure(); onScroll(); });
+    visualViewport.addEventListener('resize', remeasure);
   }
 })();
 </script>
@@ -1787,8 +2233,8 @@ button.zoom__tile:focus-visible .zoom__more {
     root.style.paddingRight = '';
   }
 
-  Array.prototype.forEach.call(document.querySelectorAll('button[data-role]'), function (btn) {
-    var dlg = document.getElementById('role-' + btn.getAttribute('data-role'));
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-sheet]'), function (btn) {
+    var dlg = document.getElementById('sheet-' + btn.getAttribute('data-sheet'));
     if (!dlg) return;
 
     btn.addEventListener('click', function () {
