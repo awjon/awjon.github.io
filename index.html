@@ -103,8 +103,16 @@ body {
 
 .hero {
   position: relative;
+  /* Stage height + pin length. The stage is one dynamic viewport (see
+     .hero__stage), which is at most 100lvh, so budgeting 100lvh for it leaves
+     at least the 100svh of pin the animation-range below asks for, whatever
+     the address bar is doing. Written as a sum of static units rather than
+     with dvh on purpose: this is the document's height, and a document that
+     grows and shrinks as the chrome slides would move the scroll position
+     under the reader. On a desktop all three units are equal and this is the
+     200vh it has always been. */
   height: 200vh;
-  height: 200svh;
+  height: calc(100svh + 100lvh);
 
   /* ---- Framing knobs -------------------------------------------------
      --*-h is the height each photo is drawn at (its width follows, 3:2),
@@ -160,11 +168,23 @@ body {
   --dy-front: calc(-0.5 * var(--front-h));   --dz-front: 0.06;
 }
 
+/* The pinned stage is the whole of what the reader sees while the hero runs,
+   so it has to be exactly as tall as what the reader can see — no more, no
+   less. dvh is the only unit that is: svh stops at the height the viewport has
+   while the address bar is showing, and a phone that hides its address bar
+   mid-scroll then grows the viewport underneath a stage that does not follow,
+   uncovering a hard-edged strip of the page's near-black background across the
+   bottom of the frame. lvh has the opposite fault — it would run the stage
+   under the address bar whenever that bar is up, hiding the bottom of the
+   composition. Sizing to dvh also lines the sticky pin up exactly with the
+   scroll range the animation above rides, because both are then measured
+   against the same viewport. */
 .hero__stage {
   position: sticky;
   top: 0;
   height: 100vh;
   height: 100svh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg);
 }
@@ -513,7 +533,8 @@ body {
 
 .zoom {
   position: relative;
-  /* Pin length: the stage sticks for height − 100vh of scrolling. */
+  /* Pin length: the stage sticks for height − one viewport of scrolling, and
+     the `contain` range below is that same span, so the two agree exactly. */
   height: 1510vh;
   height: 1510svh;
   background: var(--bg);
@@ -543,11 +564,17 @@ body {
   }
 }
 
+/* Same reasoning as .hero__stage: the pinned box is what the reader sees, so
+   it is a dynamic viewport tall. It matters more here than in the hero,
+   because this stage is where the video goes full bleed — an svh stage leaves
+   the video short of the bottom of a phone that has hidden its address bar,
+   and the strip left over is page background, not footage. */
 .zoom__stage {
   position: sticky;
   top: 0;
   height: 100vh;
   height: 100svh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg);
 
@@ -562,16 +589,17 @@ body {
      below it drifts with the window's aspect ratio, which is exactly what a
      5px gap cannot afford.
 
-     svh/svmax, not vh/vmax: this stage's own height is pinned to the small
-     viewport two lines up, and a mobile browser's large and small viewports
-     differ by however tall its address bar is. Sized in plain vh, the ring
-     would be laid out against a viewport taller than the box actually
-     rendered at — everything in it a little bigger than its 1% share of the
-     real box — with nowhere for the surplus to go but into the header's
-     band above the top row, which is exactly the seam a few percent of
-     error lands in. Headless testing never catches this: without real
-     browser chrome to show or hide, a headless viewport's large and small
-     values are identical. */
+     svh/svmax, not vh/vmax: the stage is a dynamic viewport tall, which is
+     anywhere between the small and large viewports depending on what the
+     address bar is doing. The ring has to fit in the worst of those, so it is
+     sized against the small one and centred in whatever the box turns out to
+     be. Sized in plain vh it would instead be laid out against the LARGEST
+     viewport — everything in it a little bigger than its 1% share of the real
+     box whenever the bar is showing, with nowhere for the surplus to go but
+     into the header's band above the top row, which is exactly the seam a few
+     percent of error lands in. Headless testing never catches this: without
+     real browser chrome to show or hide, a headless viewport's large, small
+     and dynamic values are identical. */
   --gap: 5px;
   --ring-w: 68vw;
   --ring-h: 85svh;
