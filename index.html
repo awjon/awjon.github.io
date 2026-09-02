@@ -410,12 +410,15 @@ body {
    all as a fraction of the pin, and all repeated verbatim in the two scripts
    at the foot of the document, which have to agree with them.
 
-   --f is the third and last video, snowball.mov: it opens on the exact frame
-   screentoboard.mp4 ends on — checked, they differ by about 5/255, the same
-   compression noise as the first handover — pulls back off the board through
-   a hard cut to a snow field, and closes on a near-white "Connect?" card that
-   IS the page's true ending. Nothing wipes back after it, because nothing
-   follows it: the pin simply ends there.
+   --f is the third and last video, snowball2.mp4: it opens on the exact
+   frame screentoboard.mp4 ends on — checked, they differ by about 3/255, the
+   same compression noise as the first handover — pulls back off the board
+   through a hard cut to a snow field, and whites out to nothing. The "Connect?
+   Let's do great things together" card that used to be baked into this
+   footage is now the .finale overlay below it instead, so the reveal survives
+   being resized rather than merely surviving a crop. This IS the page's true
+   ending. Nothing wipes back after it, because nothing follows it: the pin
+   simply ends there.
 
    At 1620vh the pin is 1520vh, which divides as 200vh of camera move (exactly
    the run the gallery has always had), 320vh of the first video from the seam,
@@ -649,7 +652,7 @@ body {
    fifth of a second — close enough to frame one that the dissolve has nothing
    to reconcile but the monitor coming on. The second and third are narrower
    still, because each opens on the exact frame the one before it ends on —
-   screentoboard.mp4 on monitorzoom.mp4's last frame, snowball.mov on
+   screentoboard.mp4 on monitorzoom.mp4's last frame, snowball2.mp4 on
    screentoboard.mp4's — so there is nothing there to cross-fade, only a swap
    to cover. */
 .zoom__screen--vid,
@@ -1654,31 +1657,79 @@ button.zoom__tile:focus-visible .zoom__more {
 }
 
 /* -------------------------------------------------------------------------
-   The finale. Two links, over the video's own last frame — the near-white
-   card its "Connect?" title lands on, sampled at #FEFEFE with text down to
-   #1c1c1c. This is the page's true close: nothing follows it, so unlike the
-   skills and the case studies this overlay does not wipe itself back off.
+   The finale. A title and two links, over the video's own last frame — the
+   near-white field snowball2.mp4 fades to, sampled at #FEFEFE. This is the
+   page's true close: nothing follows it, so unlike the skills and the case
+   studies this overlay does not wipe itself back off.
 
-   It carries no heading of its own. The video already says "Connect? Let's
-   do great things together" in its own baked type, and on any window close to
-   16:9 that plays out in full; recreating it in HTML would either duplicate
-   it or fight it for the same few square inches. What HTML adds is the two
-   things a burned-in video frame cannot be: an actual link. Positioned left,
-   continuing the video's own left margin, and low enough to sit under that
-   title on every aspect ratio a `cover` crop can produce — cropping a 16:9
-   frame to a phone's aspect keeps the full vertical extent and only trims the
-   sides, so the title's vertical band always survives even where its edges
-   do not, and these buttons sit just beneath wherever that band lands.
+   snowball2.mp4 is snowball.mov's footage with its baked-in "Connect? Let's
+   do great things together" title removed — the earlier cut carried that
+   title as pixels, which meant it registered correctly only on windows close
+   to the source's own 16:9 and lost words outright once a phone's `cover`
+   crop trimmed the sides. This cut restores the same two lines as HTML, set
+   in the page's own type and revealed by a left-to-right wipe matched to the
+   original's timing (measured off that earlier footage: the wipe starts
+   about 6.44s into the 8s clip and lands at 7.83s, or 0.805 → 0.979 of --f),
+   so the reveal still lands in step with the footage whiting out beneath it
+   — but now in a clip-path percentage rather than a fixed pixel crop, which
+   reflows and reveals correctly at any width instead of merely surviving one.
    ------------------------------------------------------------------------- */
 .finale {
   position: absolute;
   inset: 0;
   z-index: 5;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: clamp(18px, 3.4vh, 34px);
   padding: 0 0 clamp(30px, 11vh, 100px) clamp(18px, 10.5vw, 210px);
   pointer-events: none;
-  opacity: clamp(0, calc((var(--f) - 0.82) / 0.13), 1);
+}
+
+/* The wipe itself: --reveal is 0 until the timing window opens and 1 once it
+   closes, and clip-path spends it as a right-hand inset shrinking from 100%
+   (everything hidden) to 0 (nothing hidden). Both lines are stacked inside
+   this one clipped box rather than each carrying its own mask, which is what
+   makes them share a single front — "Connect?" merely finishes revealing
+   sooner than the sentence below it because it is the shorter of the two, the
+   same reason it did in the source footage. */
+.finale__title {
+  --reveal: clamp(0, calc((var(--f) - 0.805) / 0.174), 1);
+  clip-path: inset(0 calc((1 - var(--reveal)) * 100%) 0 0);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 1vh, 10px);
+  /* Capped rather than left to the viewport: on a wide window the sentence
+     below would otherwise run past a comfortable reading measure, and the
+     cap is also what keeps the wipe reading as a left-to-right reveal of ONE
+     block of text instead of an increasingly sparse scan across a very wide
+     one. Narrower than this, the sentence wraps — a clip-path inset clips a
+     vertical column of the whole box regardless of how many rows are in it,
+     so a wrapped second line still reveals in the same left-to-right sweep,
+     just across two rows in step rather than one. */
+  max-width: min(90vw, 640px);
+}
+
+.finale__title strong {
+  /* vh in the mix, not vw alone, on the same reasoning as the board heading
+     above: a wide-but-short window must not grow this past the room a
+     one-line reveal actually has. */
+  font-size: clamp(1.5rem, min(5.4vw, 6vh), 2.9rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: #1c1c1c;
+  white-space: nowrap;
+}
+
+.finale__title span {
+  font-family: 'SF Mono', 'Roboto Mono', 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  font-size: clamp(0.82rem, min(2.6vw, 2.9vh), 1.25rem);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: rgba(28, 28, 28, 0.62);
 }
 
 /* Only once the phase is actually live, on the same reasoning as the case
@@ -1691,6 +1742,10 @@ button.zoom__tile:focus-visible .zoom__more {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
+  /* Starts a little before the title's own wipe lands (0.979) and finishes
+     at the very end of the pin, so the two links settle in just as "together"
+     resolves rather than snapping in afterwards. */
+  opacity: clamp(0, calc((var(--f) - 0.88) / 0.12), 1);
 }
 
 /* 48px tall so both are comfortable thumb targets on a phone. */
@@ -1785,7 +1840,7 @@ button.zoom__tile:focus-visible .zoom__more {
                src="assets/screentoboard.mp4" preload="none"
                muted playsinline disablepictureinpicture aria-hidden="true"></video>
         <video class="zoom__screen zoom__screen--finale" id="finale-vid"
-               src="assets/snowball.mp4" preload="none"
+               src="assets/snowball2.mp4" preload="none"
                muted playsinline disablepictureinpicture aria-hidden="true"></video>
       </div>
     </div>
@@ -1969,13 +2024,19 @@ button.zoom__tile:focus-visible .zoom__more {
         <li class="skill">Business Intelligence &amp; Analytics</li>
       </ul>
     </div>
-    <!-- The finale. Two links laid over the third video's own closing frame —
-         see the CSS block for why there is no heading here: the video already
-         carries "Connect? Let's do great things together" in its own baked
-         type, and this only adds what a burned-in frame cannot be, an actual
-         link. LinkedIn per REDESIGN_PLAN.md; the résumé is the PDF already
-         committed at assets/. -->
+    <!-- The finale: a title and two links, over the third video's own closing
+         frame. snowball2.mp4 carries no baked-in type — its predecessor did,
+         which read fine only on windows close to 16:9 and lost words outright
+         on a phone's crop — so both lines are ordinary HTML here instead, set
+         in the page's own type and revealed by the clip-path wipe in the CSS
+         block above, timed to land as the footage itself whites out. LinkedIn
+         per REDESIGN_PLAN.md; the résumé is the PDF already committed at
+         assets/. -->
     <div class="finale">
+      <div class="finale__title">
+        <strong>Connect?</strong>
+        <span>Let's do great things together</span>
+      </div>
       <div class="finale__links">
         <a class="finale__link" href="https://www.linkedin.com/in/jonkwong"
            target="_blank" rel="noopener" aria-label="Jonathan Wong on LinkedIn (opens in a new tab)">
@@ -2432,11 +2493,11 @@ button.zoom__tile:focus-visible .zoom__more {
       zoom.classList.toggle('is-cases', live);
     }
     // Only the near end, unlike the cases gate: this is the true close, so
-    // there is no far bound to wipe back past — the pin simply ends. 0.82
-    // matches the CSS opacity ramp's own start, so the links become clickable
-    // at the same instant they become visible.
+    // there is no far bound to wipe back past — the pin simply ends. 0.88
+    // matches .finale__links's own opacity ramp start, so the two links
+    // become clickable at the same instant they become visible.
     var f = (t - CASES_END) / (1 - CASES_END);
-    var fLive = f >= 0.82;
+    var fLive = f >= 0.88;
     if (fLive !== finaleLive) {
       finaleLive = fLive;
       zoom.classList.toggle('is-finale', fLive);
