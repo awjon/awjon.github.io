@@ -410,19 +410,27 @@ body {
    all as a fraction of the pin, and all repeated verbatim in the two scripts
    at the foot of the document, which have to agree with them.
 
-   At 1340vh the pin is 1240vh, which divides as 200vh of camera move (exactly
-   the run the gallery has always had), 320vh of the first video from the seam,
-   240vh of skills, 300vh of the second video and 280vh of case studies — with
-   the first two overlapping across the middle 100vh. The odd-looking
-   percentages below are just those lengths over 1240; the vh figures are the
-   ones to reason about.
+   --f is the third and last video, snowball.mov: it opens on the exact frame
+   screentoboard.mp4 ends on — checked, they differ by about 5/255, the same
+   compression noise as the first handover — pulls back off the board through
+   a hard cut to a snow field, and closes on a near-white "Connect?" card that
+   IS the page's true ending. Nothing wipes back after it, because nothing
+   follows it: the pin simply ends there.
 
-   That puts the two videos at about 35 and 30vh of scroll per second of
-   footage, both inside the band where a scrub still feels driven rather than
+   At 1620vh the pin is 1520vh, which divides as 200vh of camera move (exactly
+   the run the gallery has always had), 320vh of the first video from the seam,
+   240vh of skills, 300vh of the second video, 280vh of case studies and 280vh
+   of the third video — with the first two overlapping across the middle
+   100vh. The odd-looking percentages below are just those lengths over 1520;
+   the vh figures are the ones to reason about.
+
+   That puts the three videos at about 35, 30 and 35vh of scroll per second of
+   footage, all inside the band where a scrub still feels driven rather than
    dragged: much under 25vh/s and it flicks past, much over 45 and the reader
    is winding a handle on it. The case studies get the longest hold on the
-   page — around 160vh with every card up — because they are the one overlay
-   here a reader is meant to stop at and click. */
+   page — around 160vh with every card up — because until this one they were
+   the one overlay a reader was meant to stop at and click; the finale's own
+   links now take that role in the last stretch of the third video. */
 @property --z {
   syntax: "<number>";
   inherits: true;
@@ -478,11 +486,22 @@ body {
   to   { --c: 1; }
 }
 
+@property --f {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@keyframes finale-progress {
+  from { --f: 0; }
+  to   { --f: 1; }
+}
+
 .zoom {
   position: relative;
   /* Pin length: the stage sticks for height − 100vh of scrolling. */
-  height: 1340vh;
-  height: 1340svh;
+  height: 1620vh;
+  height: 1620svh;
   background: var(--bg);
 }
 
@@ -496,16 +515,17 @@ body {
 @supports (animation-timeline: view()) {
   .zoom {
     animation-name: zoom-progress, video-progress, skills-progress,
-                    board-progress, cases-progress;
-    animation-duration: auto, auto, auto, auto, auto;
-    animation-timing-function: linear, linear, linear, linear, linear;
-    animation-fill-mode: both, both, both, both, both;
-    animation-timeline: view(), view(), view(), view(), view();
-    animation-range: contain 0% contain 16.13%,        /* ZOOM_END   — 200vh */
-                     contain 8.06% contain 33.87%,     /* SEAM       — 320vh */
-                     contain 33.87% contain 53.23%,    /* VID_END    — 240vh */
-                     contain 53.23% contain 77.42%,    /* SKILLS_END — 300vh */
-                     contain 77.42% contain 100%;      /* BOARD_END  — 280vh */
+                    board-progress, cases-progress, finale-progress;
+    animation-duration: auto, auto, auto, auto, auto, auto;
+    animation-timing-function: linear, linear, linear, linear, linear, linear;
+    animation-fill-mode: both, both, both, both, both, both;
+    animation-timeline: view(), view(), view(), view(), view(), view();
+    animation-range: contain 0% contain 13.16%,        /* ZOOM_END   — 200vh */
+                     contain 6.58% contain 27.63%,     /* SEAM       — 320vh */
+                     contain 27.63% contain 43.42%,    /* VID_END    — 240vh */
+                     contain 43.42% contain 63.16%,    /* SKILLS_END — 300vh */
+                     contain 63.16% contain 81.58%,    /* BOARD_END  — 280vh */
+                     contain 81.58% contain 100%;      /* CASES_END  — 280vh */
   }
 }
 
@@ -620,17 +640,21 @@ body {
    the foot of the document, and sits on the element rather than on the section
    so that each clip answers for itself.
 
-   The three layers stack still → first video → second video, and each hands
-   over to the next on a frame the next one already matches. So both fades are
-   narrow: they exist to cover a decode, not to blend two different pictures.
+   The four layers stack still → first video → second video → third video, and
+   each hands over to the next on a frame the next one already matches. So all
+   three fades are narrow: they exist to cover a decode, not to blend two
+   different pictures.
 
    The first sits just past the seam, where the video is still inside its first
    fifth of a second — close enough to frame one that the dissolve has nothing
-   to reconcile but the monitor coming on. The second is narrower still,
-   because screentoboard.mp4 opens on the exact frame monitorzoom.mp4 ends on;
-   there is nothing there to cross-fade, only a swap to cover. */
+   to reconcile but the monitor coming on. The second and third are narrower
+   still, because each opens on the exact frame the one before it ends on —
+   screentoboard.mp4 on monitorzoom.mp4's last frame, snowball.mov on
+   screentoboard.mp4's — so there is nothing there to cross-fade, only a swap
+   to cover. */
 .zoom__screen--vid,
-.zoom__screen--board { opacity: 0; }
+.zoom__screen--board,
+.zoom__screen--finale { opacity: 0; }
 
 .zoom__screen--vid.is-ready {
   opacity: clamp(0, calc((var(--z) - 0.5) / 0.04), 1);
@@ -638,6 +662,10 @@ body {
 
 .zoom__screen--board.is-ready {
   opacity: clamp(0, calc(var(--b) / 0.015), 1);
+}
+
+.zoom__screen--finale.is-ready {
+  opacity: clamp(0, calc(var(--f) / 0.015), 1);
 }
 
 /* The value proposition, now the gallery's header rather than a screen of its
@@ -1246,80 +1274,6 @@ button.zoom__tile:focus-visible .zoom__more {
 }
 
 /* -------------------------------------------------------------------------
-   The close. Deliberately small and last: the career detail belongs on
-   LinkedIn and in the résumé, so this page's job is to be the impression and
-   then hand the reader off. Two links, no metrics, no restated CV.
-   ------------------------------------------------------------------------- */
-.ending {
-  min-height: 60vh;
-  min-height: 60svh;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 30px;
-  padding: 14vh 7vw;
-  text-align: center;
-}
-
-.ending p {
-  margin: 0;
-  max-width: 26ch;
-  font-size: clamp(1.05rem, 2.1vw, 1.5rem);
-  font-weight: 500;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
-  color: rgba(231, 237, 240, 0.72);
-  text-wrap: balance;
-}
-
-.ending__links {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-/* 48px tall so both are comfortable thumb targets on a phone. */
-.ending__links a {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 48px;
-  padding: 0 20px;
-  border: 1px solid rgba(231, 237, 240, 0.18);
-  border-radius: 2px;
-  color: var(--ink);
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  text-decoration: none;
-  transition: border-color 220ms ease, background-color 220ms ease;
-}
-
-.ending__links a:hover,
-.ending__links a:focus-visible {
-  border-color: rgba(231, 237, 240, 0.4);
-  background: rgba(231, 237, 240, 0.06);
-}
-
-.ending__links svg {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-  opacity: 0.75;
-}
-
-.ending__meta {
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(231, 237, 240, 0.32);
-}
-
-/* -------------------------------------------------------------------------
    Framing adjustments.
    A 3:2 photograph cannot fill every viewport shape, so these keep the
    subjects in frame at the extremes.
@@ -1699,6 +1653,85 @@ button.zoom__tile:focus-visible .zoom__more {
   .board__grid { grid-template-columns: 1fr; }
 }
 
+/* -------------------------------------------------------------------------
+   The finale. Two links, over the video's own last frame — the near-white
+   card its "Connect?" title lands on, sampled at #FEFEFE with text down to
+   #1c1c1c. This is the page's true close: nothing follows it, so unlike the
+   skills and the case studies this overlay does not wipe itself back off.
+
+   It carries no heading of its own. The video already says "Connect? Let's
+   do great things together" in its own baked type, and on any window close to
+   16:9 that plays out in full; recreating it in HTML would either duplicate
+   it or fight it for the same few square inches. What HTML adds is the two
+   things a burned-in video frame cannot be: an actual link. Positioned left,
+   continuing the video's own left margin, and low enough to sit under that
+   title on every aspect ratio a `cover` crop can produce — cropping a 16:9
+   frame to a phone's aspect keeps the full vertical extent and only trims the
+   sides, so the title's vertical band always survives even where its edges
+   do not, and these buttons sit just beneath wherever that band lands.
+   ------------------------------------------------------------------------- */
+.finale {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0 clamp(30px, 11vh, 100px) clamp(18px, 10.5vw, 210px);
+  pointer-events: none;
+  opacity: clamp(0, calc((var(--f) - 0.82) / 0.13), 1);
+}
+
+/* Only once the phase is actually live, on the same reasoning as the case
+   studies: an overlay at opacity 0 still takes clicks, and this sits over
+   three other videos' worth of scroll before it ever becomes visible. */
+.zoom.is-finale .finale__link { pointer-events: auto; }
+
+.finale__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 48px tall so both are comfortable thumb targets on a phone. */
+.finale__link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid rgba(28, 28, 28, 0.22);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #1c1c1c;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: border-color 220ms ease, background-color 220ms ease;
+}
+
+.finale__link:hover,
+.finale__link:focus-visible {
+  border-color: rgba(28, 28, 28, 0.45);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.finale__link svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  /* The video's own text sits lower still on a phone crop, and the left
+     margin above scales from viewport width — cramped once the width itself
+     is the short side. Anchored to the same 4vw the board section settled on
+     for portrait. */
+  .finale { padding: 0 0 clamp(26px, 7vh, 60px) 4vw; }
+}
+
 /* Motion is deliberately NOT reduced under prefers-reduced-motion. The
    parallax is the substance of this page rather than decoration, and it is
    scroll-driven — it only advances as far as the reader scrolls, and stops
@@ -1737,12 +1770,11 @@ button.zoom__tile:focus-visible .zoom__more {
            own opening framing with the monitor dark, so the two stack in one
            box and the handoff is a dissolve on the screen alone.
 
-           The first video is preload="metadata" only and the second not at
-           all: this is six megabytes sitting several viewports down and the
-           hero should not be waiting on any of it. The scrubber at the foot of
-           the document pulls the first as the section comes into range and the
-           second only once the reader is committed to the flight, so the two
-           never compete for the connection. -->
+           None of the three videos is preloaded beyond the first's metadata:
+           this is close to eleven megabytes sitting several viewports down,
+           and the hero should not be waiting on any of it. The scrubber at
+           the foot of the document pulls each one in turn as the reader
+           commits to it, so no two ever compete for the same connection. -->
       <div class="zoom__tile">
         <img class="zoom__screen" src="assets/monitorstill.jpg" decoding="async"
              alt="A desk under a wall-mounted lamp: a wide monitor, a mechanical keyboard on a walnut rest, a phone and two plants.">
@@ -1751,6 +1783,9 @@ button.zoom__tile:focus-visible .zoom__more {
                muted playsinline disablepictureinpicture aria-hidden="true"></video>
         <video class="zoom__screen zoom__screen--board" id="board-vid"
                src="assets/screentoboard.mp4" preload="none"
+               muted playsinline disablepictureinpicture aria-hidden="true"></video>
+        <video class="zoom__screen zoom__screen--finale" id="finale-vid"
+               src="assets/snowball.mp4" preload="none"
                muted playsinline disablepictureinpicture aria-hidden="true"></video>
       </div>
     </div>
@@ -1933,6 +1968,26 @@ button.zoom__tile:focus-visible .zoom__more {
         <li class="skill">Regulatory &amp; Data Compliance</li>
         <li class="skill">Business Intelligence &amp; Analytics</li>
       </ul>
+    </div>
+    <!-- The finale. Two links laid over the third video's own closing frame —
+         see the CSS block for why there is no heading here: the video already
+         carries "Connect? Let's do great things together" in its own baked
+         type, and this only adds what a burned-in frame cannot be, an actual
+         link. LinkedIn per REDESIGN_PLAN.md; the résumé is the PDF already
+         committed at assets/. -->
+    <div class="finale">
+      <div class="finale__links">
+        <a class="finale__link" href="https://www.linkedin.com/in/jonkwong"
+           target="_blank" rel="noopener" aria-label="Jonathan Wong on LinkedIn (opens in a new tab)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle><path d="M10 21V9m0 5a5 5 0 0 1 10 0v7"></path></svg>
+          LinkedIn
+        </a>
+        <a class="finale__link" href="assets/Jonathan-Wong-Resume.pdf"
+           target="_blank" rel="noopener" aria-label="Open résumé PDF (opens in a new tab)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M9 15h6"></path></svg>
+          Résumé
+        </a>
+      </div>
     </div>
   </div>
 </div>
@@ -2145,13 +2200,16 @@ button.zoom__tile:focus-visible .zoom__more {
     return v < 0 ? 0 : v > 1 ? 1 : v;
   }
 
-  // The three knobs from the @supports block up in the stylesheet: --z is done
-  // by ZOOM_END of the pin, --v runs SEAM → VID_END, and --k runs VID_END → 1.
-  var ZOOM_END   = 0.1613;
-  var SEAM       = 0.0806;
-  var VID_END    = 0.3387;
-  var SKILLS_END = 0.5323;
-  var BOARD_END  = 0.7742;
+  // The four knobs from the @supports block up in the stylesheet: --z is done
+  // by ZOOM_END of the pin, --v runs SEAM → VID_END, --k runs VID_END →
+  // SKILLS_END, --b runs SKILLS_END → BOARD_END, --c runs BOARD_END →
+  // CASES_END, and --f runs CASES_END → 1.
+  var ZOOM_END   = 0.1316;
+  var SEAM       = 0.0658;
+  var VID_END    = 0.2763;
+  var SKILLS_END = 0.4342;
+  var BOARD_END  = 0.6316;
+  var CASES_END  = 0.8158;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
@@ -2164,7 +2222,8 @@ button.zoom__tile:focus-visible .zoom__more {
     root.style.setProperty('--v', clamp01((t - SEAM) / (VID_END - SEAM)).toFixed(4));
     root.style.setProperty('--k', clamp01((t - VID_END) / (SKILLS_END - VID_END)).toFixed(4));
     root.style.setProperty('--b', clamp01((t - SKILLS_END) / (BOARD_END - SKILLS_END)).toFixed(4));
-    root.style.setProperty('--c', clamp01((t - BOARD_END) / (1 - BOARD_END)).toFixed(4));
+    root.style.setProperty('--c', clamp01((t - BOARD_END) / (CASES_END - BOARD_END)).toFixed(4));
+    root.style.setProperty('--f', clamp01((t - CASES_END) / (1 - CASES_END)).toFixed(4));
   }
 
   function onScroll() {
@@ -2188,7 +2247,7 @@ button.zoom__tile:focus-visible .zoom__more {
 
 <script>
 (function () {
-  // The two scroll-scrubbed videos.
+  // The three scroll-scrubbed videos.
   //
   // This block always runs. Everything else on the page is expressible as CSS
   // driven by a scroll timeline, but currentTime is not a style — no timeline
@@ -2196,15 +2255,17 @@ button.zoom__tile:focus-visible .zoom__more {
   // does, and it carries its own copy of the pin arithmetic rather than
   // reaching into a script that may have returned on line one.
   //
-  // Two clips, one mechanism. The figures are the same ones the stylesheet's
+  // Three clips, one mechanism. The figures are the same ones the stylesheet's
   // animation-range uses: the first video runs SEAM → VID_END, the second
-  // SKILLS_END → the end of the pin, and between them the skills phase holds
-  // the first video's last frame. The second clip opens on that same frame, so
-  // handing over is a swap of two identical pictures.
-  var SEAM       = 0.0806;
-  var VID_END    = 0.3387;
-  var SKILLS_END = 0.5323;
-  var BOARD_END  = 0.7742;
+  // SKILLS_END → BOARD_END, the third CASES_END → the end of the pin — and
+  // between each pair the skills or the case studies hold that video's last
+  // frame. Each clip opens on the frame the one before it ends on, so every
+  // handover is a swap of two identical pictures.
+  var SEAM       = 0.0658;
+  var VID_END    = 0.2763;
+  var SKILLS_END = 0.4342;
+  var BOARD_END  = 0.6316;
+  var CASES_END  = 0.8158;
 
   var zoom = document.getElementById('zoom');
   if (!zoom) return;
@@ -2329,24 +2390,30 @@ button.zoom__tile:focus-visible .zoom__more {
   }
 
   // warmAt is how far into the pin to start fetching each clip. The first is
-  // pulled as the section comes into range; the second waits until the reader
-  // is committed to the flight, because six megabytes of video competing on one
-  // connection would starve the clip actually on screen. It still has the whole
-  // skills phase — 240vh of scrolling — to arrive before it is needed.
+  // pulled as the section comes into range; the second and third each wait
+  // until the reader is well into the one before, because megabytes of video
+  // competing on one connection would starve whichever clip is actually on
+  // screen. Each still has a full phase or more of scrolling to arrive before
+  // it is needed — the skills phase for the second, the second video and case
+  // studies together for the third.
   var clips = [];
-  [['zoom-vid', SEAM, VID_END, -1], ['board-vid', SKILLS_END, BOARD_END, 0.19]]
+  [['zoom-vid', SEAM, VID_END, -1],
+   ['board-vid', SKILLS_END, BOARD_END, 0.19],
+   ['finale-vid', CASES_END, 1, SKILLS_END]]
     .forEach(function (c) {
       var clip = new Clip(c[0], c[1], c[2], c[3]);
       if (clip) clips.push(clip);
     });
   if (!clips.length) return;
 
-  // The case cards are the one thing on this page a reader is meant to click,
-  // and an overlay at opacity 0 still takes clicks — so without this a card
-  // sitting invisible over the skills phase would quietly swallow a press
-  // aimed at nothing. Gating on a class costs nothing: the cards open
-  // <dialog>s from script, so with no script they were never clickable.
-  var casesLive = false;
+  // The case cards and the finale's two links are the only things on this
+  // page a reader is meant to click, and an overlay at opacity 0 still takes
+  // clicks — so without these gates a card or link sitting invisible over an
+  // earlier phase would quietly swallow a press aimed at nothing. Gating on a
+  // class costs nothing: both open from script (a <dialog>, an <a>'s own
+  // navigation triggered by a real click), so with no script neither was
+  // reachable in the first place.
+  var casesLive = false, finaleLive = false;
 
   function render() {
     queued = false;
@@ -2357,13 +2424,22 @@ button.zoom__tile:focus-visible .zoom__more {
     }
     // Bounded at both ends, not just the near one: past 0.92 the overlay has
     // wiped itself off — the same figure the CSS fades out on — and a card
-    // still taking clicks there would be an invisible target on the last
-    // screen of the page.
-    var c = (t - BOARD_END) / (1 - BOARD_END);
+    // still taking clicks there would be an invisible target on the page.
+    var c = (t - BOARD_END) / (CASES_END - BOARD_END);
     var live = c >= 0 && c < 0.92;
     if (live !== casesLive) {
       casesLive = live;
       zoom.classList.toggle('is-cases', live);
+    }
+    // Only the near end, unlike the cases gate: this is the true close, so
+    // there is no far bound to wipe back past — the pin simply ends. 0.82
+    // matches the CSS opacity ramp's own start, so the links become clickable
+    // at the same instant they become visible.
+    var f = (t - CASES_END) / (1 - CASES_END);
+    var fLive = f >= 0.82;
+    if (fLive !== finaleLive) {
+      finaleLive = fLive;
+      zoom.classList.toggle('is-finale', fLive);
     }
   }
 
