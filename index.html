@@ -1494,9 +1494,13 @@ button.zoom__tile:focus-visible .zoom__more {
 
 .board__sub {
   margin: clamp(10px, 1.8vh, 20px) 0 clamp(14px, 2.8vh, 30px);
-  max-width: 46ch;
+  /* Wide enough for the sentence to hold one line at the widths this is ever
+     shown at: it's dropped entirely below max-aspect-ratio 1/1, so there's no
+     narrow-portrait case to wrap for. */
+  max-width: 62ch;
   font-size: clamp(0.78rem, min(1.4vw, 1.9vh), 1rem);
   line-height: 1.5;
+  white-space: nowrap;
   color: rgba(43, 48, 52, 0.74);
 }
 
@@ -1547,7 +1551,8 @@ button.zoom__tile:focus-visible .zoom__more {
   background: rgba(255, 255, 255, 0.46);
   border: 2px solid color-mix(in srgb, var(--marker) 38%, transparent);
   border-radius: 14px 7px 16px 9px;
-  transform: rotate(-0.45deg);
+  --rest: rotate(-0.45deg);
+  transform: var(--rest);
   transition: transform 220ms ease, background-color 220ms ease,
               border-color 220ms ease, box-shadow 220ms ease;
 }
@@ -1559,7 +1564,14 @@ button.zoom__tile:focus-visible .zoom__more {
   .case { border-color: rgba(43, 48, 52, 0.38); }
 }
 
-.board__grid li:nth-child(even) .case { transform: rotate(0.5deg); }
+/* A custom property rather than a transform of its own: the earlier version
+   set transform directly on this compound selector, which out-specifies
+   .case:hover below (three classes/pseudo-classes beat two) and pinned the
+   even cards to their resting tilt on hover — no lift, no un-rotate, which
+   read as a hover that does nothing. Routing the alternation through --rest
+   instead means only .case's own base rule sets transform at rest, so
+   :hover's plain .case specificity is enough to win outright. */
+.board__grid li:nth-child(even) .case { --rest: rotate(0.5deg); }
 
 .case:hover,
 .case:focus-visible {
@@ -2023,8 +2035,8 @@ button.zoom__tile:focus-visible .zoom__more {
       <div class="board__inner">
         <h2 class="board__head">Case studies</h2>
         <div class="board__rule"></div>
-        <p class="board__sub">Four problems that arrived without a plan attached, and what
-           came out the other side.</p>
+        <p class="board__sub">Challenges in my career that arrived without a plan and the
+           practical solutions I developed to resolve them.</p>
         <ul class="board__grid">
           <li>
             <button class="case case--k" type="button" data-sheet="case-attack"
