@@ -446,7 +446,12 @@ body {
    monitorzoom.mp4 ends on — checked, they differ by about 2/255, which is
    compression noise — and pulls back off the screen to a laptop closing on a
    desk, then pushes into the whiteboard behind it until the board fills the
-   frame.
+   frame. Trimmed 0.5s off its own tail — the last stretch of the original
+   footage was the board already fully framed with nothing left to resolve,
+   a second static beat right before the case studies' own hold. The cut
+   landed on a keyframe (this source encodes an I-frame every 4 of its 24
+   fps, and 9.5s is frame 228 of 240), so it's a stream copy, not a
+   re-encode: the retained footage is bit-identical to before.
 
    --c is the case studies, written onto that board. Like the skills, they are
    an overlay on a frame the video is parked on rather than a section of their
@@ -458,9 +463,11 @@ body {
    all as a fraction of the pin, and all repeated verbatim in the two scripts
    at the foot of the document, which have to agree with them.
 
-   --f is the third and last video, snowball2.mp4: it opens on the exact
-   frame screentoboard.mp4 ends on — checked, they differ by about 3/255, the
-   same compression noise as the first handover — pulls back off the board
+   --f is the third and last video, snowball2.mp4: it opens on close to the
+   frame screentoboard.mp4 ends on — checked, they differ by about 5/255 now
+   that screentoboard's tail is trimmed (it was 3/255 against the untrimmed
+   file), still well inside compression noise on what is a nearly blank
+   whiteboard — pulls back off the board
    through a hard cut to a snow field, and whites out to nothing. The "Connect?
    Let's do great things together" card that used to be baked into this
    footage is now the .finale overlay below it instead, so the reveal survives
@@ -468,11 +475,11 @@ body {
    ending. Nothing wipes back after it, because nothing follows it: the pin
    simply ends there.
 
-   At 1564vh the pin is 1464vh, which divides as 200vh of camera move (exactly
+   At 1525vh the pin is 1425vh, which divides as 200vh of camera move (exactly
    the run the gallery has always had), 320vh of the first video from the seam,
-   240vh of skills, 300vh of the second video, 240vh of case studies and 264vh
+   240vh of skills, 285vh of the second video, 216vh of case studies and 264vh
    of the third video — with the first two overlapping across the middle
-   100vh. The odd-looking percentages below are just those lengths over 1464;
+   100vh. The odd-looking percentages below are just those lengths over 1425;
    the vh figures are the ones to reason about.
 
    Case studies and the third video were both trimmed from their first pass —
@@ -487,18 +494,27 @@ body {
    scroll spent getting through them did.
 
    That first cut went a little too far in two places, so both came back up
-   partway: case studies to 240vh, wide enough to hold the cards at the same
-   0.14/0.75/0.97 fractions of --c for 146vh rather than 128, and the third
-   video to 264vh — 33vh/s rather than 30, closer to the 35 the first video
-   and the original pass both ran at, and enough that the second half of the
-   footage no longer feels rushed past. Both are still short of their first,
-   280vh pass; only the very end of the dead patch was ever the problem.
+   partway: case studies to 240vh (146vh of hold) and the third video to
+   264vh, 33vh/s rather than 30 — closer to the 35 the first video runs at,
+   and enough that the second half of the footage no longer felt rushed past.
+
+   Case studies then proved too generous a second time — 146vh of hold read
+   as dragging, and screentoboard.mp4's own last half-second was part of why:
+   the footage had already resolved to a fully-framed, static board well
+   before its old 10.0s end, so the reader crossed that dead stretch of video
+   AND the wide hold right after it. Trimmed the video's last 0.5s (10.0s ->
+   9.5s, a stream-copy cut on a keyframe, so the retained footage is
+   untouched) and pulled case studies back to 216vh, wide enough to hold the
+   cards at the same 0.14/0.75/0.97 fractions of --c for 132vh rather than
+   146. The second video's own vh budget came down with its footage, from
+   300vh to 285, so its pace holds at the 30vh/s established before rather
+   than quietly speeding up because the clip got shorter underneath it.
 
    That puts the three videos at about 35, 30 and 33vh of scroll per second of
    footage, all inside the band where a scrub still feels driven rather than
    dragged: much under 25vh/s and it flicks past, much over 45 and the reader
    is winding a handle on it. The case studies still get the longest hold on
-   the page — around 146vh with every card up — because until this one they
+   the page — around 132vh with every card up — because until this one they
    were the one overlay a reader was meant to stop at and click; the finale's
    own links now take that role in the last stretch of the third video. */
 @property --z {
@@ -571,8 +587,8 @@ body {
   position: relative;
   /* Pin length: the stage sticks for height − one viewport of scrolling, and
      the `contain` range below is that same span, so the two agree exactly. */
-  height: 1564vh;
-  height: 1564svh;
+  height: 1525vh;
+  height: 1525svh;
   background: var(--bg);
 }
 
@@ -591,12 +607,12 @@ body {
     animation-timing-function: linear, linear, linear, linear, linear, linear;
     animation-fill-mode: both, both, both, both, both, both;
     animation-timeline: view(), view(), view(), view(), view(), view();
-    animation-range: contain 0% contain 13.66%,        /* ZOOM_END   — 200vh */
-                     contain 6.83% contain 28.69%,     /* SEAM       — 320vh */
-                     contain 28.69% contain 45.08%,    /* VID_END    — 240vh */
-                     contain 45.08% contain 65.57%,    /* SKILLS_END — 300vh */
-                     contain 65.57% contain 81.97%,    /* BOARD_END  — 240vh */
-                     contain 81.97% contain 100%;      /* CASES_END  — 264vh */
+    animation-range: contain 0% contain 14.04%,        /* ZOOM_END   — 200vh */
+                     contain 7.02% contain 29.47%,     /* SEAM       — 320vh */
+                     contain 29.47% contain 46.32%,    /* VID_END    — 240vh */
+                     contain 46.32% contain 66.32%,    /* SKILLS_END — 285vh */
+                     contain 66.32% contain 81.47%,    /* BOARD_END  — 216vh */
+                     contain 81.47% contain 100%;      /* CASES_END  — 264vh */
   }
 }
 
@@ -2364,12 +2380,12 @@ button.zoom__tile:focus-visible .zoom__more {
   // by ZOOM_END of the pin, --v runs SEAM → VID_END, --k runs VID_END →
   // SKILLS_END, --b runs SKILLS_END → BOARD_END, --c runs BOARD_END →
   // CASES_END, and --f runs CASES_END → 1.
-  var ZOOM_END   = 0.1366;
-  var SEAM       = 0.0683;
-  var VID_END    = 0.2869;
-  var SKILLS_END = 0.4508;
-  var BOARD_END  = 0.6557;
-  var CASES_END  = 0.8197;
+  var ZOOM_END   = 0.1404;
+  var SEAM       = 0.0702;
+  var VID_END    = 0.2947;
+  var SKILLS_END = 0.4632;
+  var BOARD_END  = 0.6632;
+  var CASES_END  = 0.8147;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
@@ -2421,11 +2437,11 @@ button.zoom__tile:focus-visible .zoom__more {
   // between each pair the skills or the case studies hold that video's last
   // frame. Each clip opens on the frame the one before it ends on, so every
   // handover is a swap of two identical pictures.
-  var SEAM       = 0.0683;
-  var VID_END    = 0.2869;
-  var SKILLS_END = 0.4508;
-  var BOARD_END  = 0.6557;
-  var CASES_END  = 0.8197;
+  var SEAM       = 0.0702;
+  var VID_END    = 0.2947;
+  var SKILLS_END = 0.4632;
+  var BOARD_END  = 0.6632;
+  var CASES_END  = 0.8147;
 
   var zoom = document.getElementById('zoom');
   if (!zoom) return;
