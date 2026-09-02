@@ -1687,6 +1687,27 @@ button.zoom__tile:focus-visible .zoom__more {
   pointer-events: none;
 }
 
+/* The title and links assume a light backdrop — dark text, a near-white
+   translucent pill on the links — because the footage is meant to have
+   whited out underneath them by the time they're legible. But snowball2.mp4
+   spends most of its length on a hooded, all-black jacket square in the
+   centre of frame, and object-fit: cover crops tight around that same centre
+   on any window narrower than the footage's own 16:9 — a phone in portrait
+   worst of all. The reveal is timed to the scroll position, not to how white
+   the frame underneath happens to be, so without this the card can land on
+   the jacket instead of the snow and both lines of text go straight to
+   unreadable, dark-on-black. A gradient behind just the card's own corner,
+   fading in on the same --f the text uses, guarantees a light backdrop
+   regardless of which frame is under it — the video still plays; this only
+   keeps the words that end the page legible against it. */
+.finale::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(254, 254, 254, 0.94) 0%, rgba(254, 254, 254, 0.94) 32%, rgba(254, 254, 254, 0) 68%);
+  opacity: clamp(0, calc((var(--f) - 0.55) / 0.25), 1);
+}
+
 /* The wipe itself: --reveal is 0 until the timing window opens and 1 once it
    closes, and clip-path spends it as a right-hand inset shrinking from 100%
    (everything hidden) to 0 (nothing hidden). Both lines are stacked inside
