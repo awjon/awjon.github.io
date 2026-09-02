@@ -2445,6 +2445,7 @@ button.zoom__tile:focus-visible .zoom__more {
       if (reverted || vid.src.slice(0, 5) !== 'blob:') return;
       reverted = true;
       URL.revokeObjectURL(vid.src);
+      vid.preload = 'auto';   // the blob would not decode; the element retries
       vid.src = netSrc;
       vid.load();
     });
@@ -2474,13 +2475,20 @@ button.zoom__tile:focus-visible .zoom__more {
     // so no seek can land on a byte range the browser has yet to ask for. It
     // needs a real origin — from a file:// page the fetch fails and there is
     // nothing lost by falling back on the network stack's own buffering.
+    //
+    // preload is left alone on this path, and that is the point: raising it to
+    // 'auto' while src is still the network URL tells the media element to go
+    // and fetch the whole file too, alongside the fetch() below — the same
+    // bytes twice, on the one connection the staggering above exists to keep
+    // clear. It is set only on the three paths that genuinely do fall back on
+    // the element's own loading, each marked below.
     self.load = function () {
       if (loading) return;
       loading = true;
-      vid.preload = 'auto';
 
       if (location.protocol === 'file:' || typeof fetch !== 'function' ||
           !window.URL || !URL.createObjectURL) {
+        vid.preload = 'auto';   // no blob to seek in; the element does the work
         vid.load();
         unlock();
         return;
@@ -2507,6 +2515,7 @@ button.zoom__tile:focus-visible .zoom__more {
         });
         unlock();
       }).catch(function () {
+        vid.preload = 'auto';   // the fetch failed; fall back on the element
         vid.load();
         unlock();
       });
