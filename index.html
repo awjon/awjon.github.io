@@ -862,8 +862,6 @@ body {
   line-height: 1.28;
   letter-spacing: 0.01em;
   opacity: calc(1 - clamp(0, calc(var(--z) / 0.3), 1));
-  /* Four lines — company, role, business, years — each on its own row so the
-     eye can scan one column of companies without parsing a comma list. */
   display: flex;
   flex-direction: column;
   gap: 0.18em;
@@ -1176,18 +1174,15 @@ button.zoom__tile:focus-visible .zoom__more {
   }
 }
 
+/* Each tile leads with its impact rather than the company/role/years that
+   used to fill it — that detail still lives one click away, in the sheet the
+   tile opens, so it doesn't need to be read twice. A full sentence rather
+   than a short proper noun, so it takes the caption's own size instead of
+   the enlarged treatment a company name used to get. */
 .zoom__cap b {
   font-weight: 650;
-  font-size: 1.16em;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
 }
-
-/* Weight and opacity carry the hierarchy, since all four lines are the same
-   size: the role reads next after the company, the business unit sits under
-   it, and the years recede. */
-.zoom__cap .role { font-weight: 600; opacity: 0.95; }
-.zoom__cap .biz  { font-weight: 400; opacity: 0.7; }
-.zoom__cap .yr   { font-weight: 500; opacity: 0.55; font-variant-numeric: tabular-nums; }
 
 /* The centre tile: square, no offset, and the one that fills the screen. It
    is the skills panel — the gallery of where he has worked zooms into what he
@@ -1963,10 +1958,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="msrc"
               aria-haspopup="dialog" aria-label="Microsoft, Technical Program Manager, Security Response Center, 2022–2025. Open detail.">
         <span class="zoom__cap">
-          <b>Microsoft</b>
-          <span class="role">Technical Program Manager</span>
-          <span class="biz">Security Response Center</span>
-          <span class="yr">2022–2025</span>
+          <b>Delivered critical infrastructure in 34 days during an active nation-state cyber attack.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -1975,10 +1967,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="fasttrack"
               aria-haspopup="dialog" aria-label="Microsoft, Technical Program Manager, Fast Track, 2020–2022. Open detail.">
         <span class="zoom__cap">
-          <b>Microsoft</b>
-          <span class="role">Technical Program Manager</span>
-          <span class="biz">Fast Track</span>
-          <span class="yr">2020–2022</span>
+          <b>Led DevOps and automation programs driving 36% growth of 3000+ cloud deployments.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -1987,10 +1976,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="starbucks"
               aria-haspopup="dialog" aria-label="Starbucks, Technical Product Manager, Retail Platform Engineering, 2019–2020. Open detail.">
         <span class="zoom__cap">
-          <b>Starbucks</b>
-          <span class="role">Technical Product Manager</span>
-          <span class="biz">Retail Platform Engineering</span>
-          <span class="yr">2019–2020</span>
+          <b>Launched UberEats Delivery to 5,496 stores adding $4.1M in revenue.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -1999,10 +1985,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="marketplace"
               aria-haspopup="dialog" aria-label="Microsoft, Business Analyst, Azure Marketplace, 2017–2018. Open detail.">
         <span class="zoom__cap">
-          <b>Microsoft</b>
-          <span class="role">Business Analyst</span>
-          <span class="biz">Azure Marketplace</span>
-          <span class="yr">2017–2018</span>
+          <b>Enabled DevOps support for all Azure Marketplace cloud products across 2000+ publishers.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -2011,10 +1994,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="incentives"
               aria-haspopup="dialog" aria-label="Microsoft, Program Manager, Incentives, 2015–2017. Open detail.">
         <span class="zoom__cap">
-          <b>Microsoft</b>
-          <span class="role">Program Manager</span>
-          <span class="biz">Incentives</span>
-          <span class="yr">2015–2017</span>
+          <b>Owned 2 incentive programs with 60+ partners reducing SLA by 70%.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -2023,10 +2003,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="illinois"
               aria-haspopup="dialog" aria-label="Education and certification. University of Illinois, BS Management and BS Marketing. Open detail.">
         <span class="zoom__cap">
-          <b>Education / Certification</b>
-          <span class="role">University of Illinois</span>
-          <span class="biz">BS Management · BS Marketing</span>
-          <span class="yr">Azure Fundamentals · Salesforce</span>
+          <b>Microsoft Azure Fundamentals, Salesforce Trailhead, Code Fellows, Claude AI Fluency</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
