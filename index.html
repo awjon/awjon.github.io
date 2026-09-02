@@ -420,20 +420,31 @@ body {
    ending. Nothing wipes back after it, because nothing follows it: the pin
    simply ends there.
 
-   At 1620vh the pin is 1520vh, which divides as 200vh of camera move (exactly
+   At 1510vh the pin is 1410vh, which divides as 200vh of camera move (exactly
    the run the gallery has always had), 320vh of the first video from the seam,
-   240vh of skills, 300vh of the second video, 280vh of case studies and 280vh
+   240vh of skills, 300vh of the second video, 210vh of case studies and 240vh
    of the third video — with the first two overlapping across the middle
-   100vh. The odd-looking percentages below are just those lengths over 1520;
+   100vh. The odd-looking percentages below are just those lengths over 1410;
    the vh figures are the ones to reason about.
 
-   That puts the three videos at about 35, 30 and 35vh of scroll per second of
+   Case studies and the third video were both trimmed from their first pass —
+   280vh apiece — once real scrolling showed the handoff between them reading
+   as a dead patch: the cards had already faded, screentoboard's bare board sat
+   inert for a stretch, and snowball2 opens with about 1.8s of that same board
+   before its own hard cut to the snow field, so the reader was crossing two
+   videos' worth of "nothing is happening" back to back. Neither video's own
+   internal timing changed — SKILLS_END, BOARD_END, .finale's reveal window
+   and its scrim all key off fractions of --c and --f, not vh, so trimming the
+   total left every one of those thresholds exactly where it was — only the
+   scroll spent getting through them did.
+
+   That puts the three videos at about 35, 30 and 30vh of scroll per second of
    footage, all inside the band where a scrub still feels driven rather than
    dragged: much under 25vh/s and it flicks past, much over 45 and the reader
-   is winding a handle on it. The case studies get the longest hold on the
-   page — around 160vh with every card up — because until this one they were
-   the one overlay a reader was meant to stop at and click; the finale's own
-   links now take that role in the last stretch of the third video. */
+   is winding a handle on it. The case studies still get the longest hold on
+   the page — around 128vh with every card up — because until this one they
+   were the one overlay a reader was meant to stop at and click; the finale's
+   own links now take that role in the last stretch of the third video. */
 @property --z {
   syntax: "<number>";
   inherits: true;
@@ -503,8 +514,8 @@ body {
 .zoom {
   position: relative;
   /* Pin length: the stage sticks for height − 100vh of scrolling. */
-  height: 1620vh;
-  height: 1620svh;
+  height: 1510vh;
+  height: 1510svh;
   background: var(--bg);
 }
 
@@ -523,12 +534,12 @@ body {
     animation-timing-function: linear, linear, linear, linear, linear, linear;
     animation-fill-mode: both, both, both, both, both, both;
     animation-timeline: view(), view(), view(), view(), view(), view();
-    animation-range: contain 0% contain 13.16%,        /* ZOOM_END   — 200vh */
-                     contain 6.58% contain 27.63%,     /* SEAM       — 320vh */
-                     contain 27.63% contain 43.42%,    /* VID_END    — 240vh */
-                     contain 43.42% contain 63.16%,    /* SKILLS_END — 300vh */
-                     contain 63.16% contain 81.58%,    /* BOARD_END  — 280vh */
-                     contain 81.58% contain 100%;      /* CASES_END  — 280vh */
+    animation-range: contain 0% contain 14.18%,        /* ZOOM_END   — 200vh */
+                     contain 7.09% contain 29.79%,     /* SEAM       — 320vh */
+                     contain 29.79% contain 46.81%,    /* VID_END    — 240vh */
+                     contain 46.81% contain 68.09%,    /* SKILLS_END — 300vh */
+                     contain 68.09% contain 82.98%,    /* BOARD_END  — 210vh */
+                     contain 82.98% contain 100%;      /* CASES_END  — 240vh */
   }
 }
 
@@ -1363,9 +1374,12 @@ button.zoom__tile:focus-visible .zoom__more {
   pointer-events: none;
 
   /* Up over the first seventh, held, then wiped. The hold is the long part —
-     this is the one overlay on the page meant to be stopped at. */
+     this is the one overlay on the page meant to be stopped at. Departure
+     finishes at 0.97 rather than the 0.92 an earlier pass used, so the phase
+     ends within a beat of the last card actually leaving instead of sitting
+     on the bare board for another 22vh with nothing left to look at. */
   --in:  clamp(0, calc(var(--c) / 0.14), 1);
-  --out: clamp(0, calc((var(--c) - 0.72) / 0.2), 1);
+  --out: clamp(0, calc((var(--c) - 0.75) / 0.22), 1);
   --e:   calc(1 - (1 - var(--in)) * (1 - var(--in)));
   opacity: calc(var(--e) * (1 - var(--out)));
 }
@@ -2286,12 +2300,12 @@ button.zoom__tile:focus-visible .zoom__more {
   // by ZOOM_END of the pin, --v runs SEAM → VID_END, --k runs VID_END →
   // SKILLS_END, --b runs SKILLS_END → BOARD_END, --c runs BOARD_END →
   // CASES_END, and --f runs CASES_END → 1.
-  var ZOOM_END   = 0.1316;
-  var SEAM       = 0.0658;
-  var VID_END    = 0.2763;
-  var SKILLS_END = 0.4342;
-  var BOARD_END  = 0.6316;
-  var CASES_END  = 0.8158;
+  var ZOOM_END   = 0.1418;
+  var SEAM       = 0.0709;
+  var VID_END    = 0.2979;
+  var SKILLS_END = 0.4681;
+  var BOARD_END  = 0.6809;
+  var CASES_END  = 0.8298;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
@@ -2343,11 +2357,11 @@ button.zoom__tile:focus-visible .zoom__more {
   // between each pair the skills or the case studies hold that video's last
   // frame. Each clip opens on the frame the one before it ends on, so every
   // handover is a swap of two identical pictures.
-  var SEAM       = 0.0658;
-  var VID_END    = 0.2763;
-  var SKILLS_END = 0.4342;
-  var BOARD_END  = 0.6316;
-  var CASES_END  = 0.8158;
+  var SEAM       = 0.0709;
+  var VID_END    = 0.2979;
+  var SKILLS_END = 0.4681;
+  var BOARD_END  = 0.6809;
+  var CASES_END  = 0.8298;
 
   var zoom = document.getElementById('zoom');
   if (!zoom) return;
@@ -2504,11 +2518,11 @@ button.zoom__tile:focus-visible .zoom__more {
       if (clips[i].warmAt >= 0 && t >= clips[i].warmAt) clips[i].load();
       clips[i].render();
     }
-    // Bounded at both ends, not just the near one: past 0.92 the overlay has
+    // Bounded at both ends, not just the near one: past 0.97 the overlay has
     // wiped itself off — the same figure the CSS fades out on — and a card
     // still taking clicks there would be an invisible target on the page.
     var c = (t - BOARD_END) / (CASES_END - BOARD_END);
-    var live = c >= 0 && c < 0.92;
+    var live = c >= 0 && c < 0.97;
     if (live !== casesLive) {
       casesLive = live;
       zoom.classList.toggle('is-cases', live);
