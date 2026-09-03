@@ -862,8 +862,6 @@ body {
   line-height: 1.28;
   letter-spacing: 0.01em;
   opacity: calc(1 - clamp(0, calc(var(--z) / 0.3), 1));
-  /* Four lines — company, role, business, years — each on its own row so the
-     eye can scan one column of companies without parsing a comma list. */
   display: flex;
   flex-direction: column;
   gap: 0.18em;
@@ -1176,18 +1174,15 @@ button.zoom__tile:focus-visible .zoom__more {
   }
 }
 
+/* Each tile leads with its impact rather than the company/role/years that
+   used to fill it — that detail still lives one click away, in the sheet the
+   tile opens, so it doesn't need to be read twice. A full sentence rather
+   than a short proper noun, so it takes the caption's own size instead of
+   the enlarged treatment a company name used to get. */
 .zoom__cap b {
   font-weight: 650;
-  font-size: 1.16em;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
 }
-
-/* Weight and opacity carry the hierarchy, since all four lines are the same
-   size: the role reads next after the company, the business unit sits under
-   it, and the years recede. */
-.zoom__cap .role { font-weight: 600; opacity: 0.95; }
-.zoom__cap .biz  { font-weight: 400; opacity: 0.7; }
-.zoom__cap .yr   { font-weight: 500; opacity: 0.55; font-variant-numeric: tabular-nums; }
 
 /* The centre tile: square, no offset, and the one that fills the screen. It
    is the skills panel — the gallery of where he has worked zooms into what he
@@ -1499,9 +1494,13 @@ button.zoom__tile:focus-visible .zoom__more {
 
 .board__sub {
   margin: clamp(10px, 1.8vh, 20px) 0 clamp(14px, 2.8vh, 30px);
-  max-width: 46ch;
+  /* Wide enough for the sentence to hold one line at the widths this is ever
+     shown at: it's dropped entirely below max-aspect-ratio 1/1, so there's no
+     narrow-portrait case to wrap for. */
+  max-width: 62ch;
   font-size: clamp(0.78rem, min(1.4vw, 1.9vh), 1rem);
   line-height: 1.5;
+  white-space: nowrap;
   color: rgba(43, 48, 52, 0.74);
 }
 
@@ -1552,7 +1551,8 @@ button.zoom__tile:focus-visible .zoom__more {
   background: rgba(255, 255, 255, 0.46);
   border: 2px solid color-mix(in srgb, var(--marker) 38%, transparent);
   border-radius: 14px 7px 16px 9px;
-  transform: rotate(-0.45deg);
+  --rest: rotate(-0.45deg);
+  transform: var(--rest);
   transition: transform 220ms ease, background-color 220ms ease,
               border-color 220ms ease, box-shadow 220ms ease;
 }
@@ -1564,7 +1564,14 @@ button.zoom__tile:focus-visible .zoom__more {
   .case { border-color: rgba(43, 48, 52, 0.38); }
 }
 
-.board__grid li:nth-child(even) .case { transform: rotate(0.5deg); }
+/* A custom property rather than a transform of its own: the earlier version
+   set transform directly on this compound selector, which out-specifies
+   .case:hover below (three classes/pseudo-classes beat two) and pinned the
+   even cards to their resting tilt on hover — no lift, no un-rotate, which
+   read as a hover that does nothing. Routing the alternation through --rest
+   instead means only .case's own base rule sets transform at rest, so
+   :hover's plain .case specificity is enough to win outright. */
+.board__grid li:nth-child(even) .case { --rest: rotate(0.5deg); }
 
 .case:hover,
 .case:focus-visible {
@@ -1798,6 +1805,17 @@ button.zoom__tile:focus-visible .zoom__more {
   content: "";
   position: absolute;
   inset: 0;
+  /* Without this, the wash paints in front of the title and links rather
+     than behind them: .finale is a flex container, its flex-item children
+     (title, links) are unpositioned and paint in the in-flow layer, but this
+     pseudo-element is itself position:absolute and — z-index:auto or not —
+     positioned boxes paint after unpositioned ones in the same stacking
+     context. The result was exactly backwards from the comment above: the
+     "light backdrop" sat on TOP of the very text it was meant to sit behind,
+     bleaching it toward white as its own opacity ramped up through --f. A
+     negative z-index drops it out of that layer entirely, behind both the
+     in-flow content and the stacking context's own background. */
+  z-index: -1;
   background: linear-gradient(to top, rgba(254, 254, 254, 0.94) 0%, rgba(254, 254, 254, 0.94) 32%, rgba(254, 254, 254, 0) 68%);
   opacity: clamp(0, calc((var(--f) - 0.55) / 0.25), 1);
 }
@@ -1857,10 +1875,17 @@ button.zoom__tile:focus-visible .zoom__more {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  /* Starts a little before the title's own wipe lands (0.979) and finishes
-     at the very end of the pin, so the two links settle in just as "together"
-     resolves rather than snapping in afterwards. */
-  opacity: clamp(0, calc((var(--f) - 0.88) / 0.12), 1);
+  /* Starts while the title's own wipe is still running and lands at 0.93 —
+     short of --f's own 1.0 ceiling on purpose. That ceiling is also the
+     literal end of the page's scroll range, which a fair number of browsers
+     never quite reach to the last decimal (rounded viewport heights, a
+     mobile address bar settling, elastic overscroll), so a fade that only
+     finished exactly at --f 1 could sit at a fraction short of it forever —
+     legible text and a barely-there border reading as a stuck, washed-out
+     hover rather than a settled button. Finishing at 0.93 instead spends the
+     last 7% of the pin at full opacity on every browser, native
+     animation-timeline or the scroll-listener fallback alike. */
+  opacity: clamp(0, calc((var(--f) - 0.85) / 0.08), 1);
 }
 
 /* 48px tall so both are comfortable thumb targets on a phone. */
@@ -1963,10 +1988,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="msrc"
               aria-haspopup="dialog" aria-label="Microsoft, Technical Program Manager, Security Response Center, 2022–2025. Open detail.">
         <span class="zoom__cap">
-          <b>Microsoft</b>
-          <span class="role">Technical Program Manager</span>
-          <span class="biz">Security Response Center</span>
-          <span class="yr">2022–2025</span>
+          <b>Delivered critical infrastructure in 34 days during an active nation-state cyber attack.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -1975,10 +1997,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="fasttrack"
               aria-haspopup="dialog" aria-label="Microsoft, Technical Program Manager, Fast Track, 2020–2022. Open detail.">
         <span class="zoom__cap">
-          <b>Microsoft</b>
-          <span class="role">Technical Program Manager</span>
-          <span class="biz">Fast Track</span>
-          <span class="yr">2020–2022</span>
+          <b>Led DevOps and automation programs driving 36% growth of 3000+ cloud deployments.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -1987,10 +2006,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="starbucks"
               aria-haspopup="dialog" aria-label="Starbucks, Technical Product Manager, Retail Platform Engineering, 2019–2020. Open detail.">
         <span class="zoom__cap">
-          <b>Starbucks</b>
-          <span class="role">Technical Product Manager</span>
-          <span class="biz">Retail Platform Engineering</span>
-          <span class="yr">2019–2020</span>
+          <b>Launched UberEats Delivery to 5,496 stores adding $4.1M in revenue.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -1999,10 +2015,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="marketplace"
               aria-haspopup="dialog" aria-label="Microsoft, Business Analyst, Azure Marketplace, 2017–2018. Open detail.">
         <span class="zoom__cap">
-          <b>Microsoft</b>
-          <span class="role">Business Analyst</span>
-          <span class="biz">Azure Marketplace</span>
-          <span class="yr">2017–2018</span>
+          <b>Enabled DevOps support for all Azure Marketplace cloud products across 2000+ publishers.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -2011,10 +2024,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="incentives"
               aria-haspopup="dialog" aria-label="Microsoft, Program Manager, Incentives, 2015–2017. Open detail.">
         <span class="zoom__cap">
-          <b>Microsoft</b>
-          <span class="role">Program Manager</span>
-          <span class="biz">Incentives</span>
-          <span class="yr">2015–2017</span>
+          <b>Owned 2 incentive programs with 60+ partners reducing SLA by 70%.</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -2023,10 +2033,7 @@ button.zoom__tile:focus-visible .zoom__more {
       <button class="zoom__tile" type="button" data-sheet="illinois"
               aria-haspopup="dialog" aria-label="Education and certification. University of Illinois, BS Management and BS Marketing. Open detail.">
         <span class="zoom__cap">
-          <b>Education / Certification</b>
-          <span class="role">University of Illinois</span>
-          <span class="biz">BS Management · BS Marketing</span>
-          <span class="yr">Azure Fundamentals · Salesforce</span>
+          <b>Microsoft Azure Fundamentals, Salesforce Trailhead, Code Fellows, Claude AI Fluency</b>
         </span>
         <span class="zoom__more"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
       </button>
@@ -2046,8 +2053,8 @@ button.zoom__tile:focus-visible .zoom__more {
       <div class="board__inner">
         <h2 class="board__head">Case studies</h2>
         <div class="board__rule"></div>
-        <p class="board__sub">Four problems that arrived without a plan attached, and what
-           came out the other side.</p>
+        <p class="board__sub">Challenges in my career that arrived without a plan and the
+           practical solutions I developed to resolve them.</p>
         <ul class="board__grid">
           <li>
             <button class="case case--k" type="button" data-sheet="case-attack"
@@ -2163,6 +2170,11 @@ button.zoom__tile:focus-visible .zoom__more {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M9 15h6"></path></svg>
           Résumé
         </a>
+        <a class="finale__link" href="https://portfolio.automatewithjon.workers.dev/"
+           target="_blank" rel="noopener" aria-label="View portfolio (opens in a new tab)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path></svg>
+          Portfolio
+        </a>
       </div>
     </div>
   </div>
@@ -2177,8 +2189,8 @@ button.zoom__tile:focus-visible .zoom__more {
     <h2 id="sheet-msrc-title">Microsoft — Technical Program Manager, Security Response Center</h2>
     <ul>
         <li>Led program strategy for Azure Virtual Desktop Infrastructure with tenant isolation, serving global teams of 100k+ end users.</li>
-        <li>Delivered critical infrastructure in 34 days during an active nation-state cyber attack, through real-time reprioritisation.</li>
-        <li>Enabled remote work for 108k users while meeting EU data residency compliance across three European operations.</li>
+        <li>Built secure compliant operations for Executive, C‑suite, SOC, Federal, Membership, and Education infrastructure through isolating tenants.</li>
+        <li>Enabled remote infrastructure for 108k users while meeting EU data residency compliance across three European operations.</li>
         <li>Reduced manual approvals and deployments 65% with Copilot Studio and Power Platform, cutting onboarding by 3 days.</li>
     </ul>
     <form method="dialog">
@@ -2191,7 +2203,7 @@ button.zoom__tile:focus-visible .zoom__more {
     <p class="sheet__meta">2020–2022 · via Avenue In Consulting</p>
     <h2 id="sheet-fasttrack-title">Microsoft — Technical Program Manager, Fast Track</h2>
     <ul>
-        <li>Led DevOps and automation programs driving growth for a $61M incentive business.</li>
+        <li>Designed identity access management features for 27 Azure Active Directory Groups.</li>
         <li>Increased processing capacity 30% by launching 9 Power Apps and 30+ automation products across 3 portals.</li>
         <li>Reduced lead times 53% with iterative releases and continuous discovery with leadership.</li>
         <li>Integrated 19 cross-functional teams; architected 3 Azure Data Factory pipelines and 12 APIs.</li>
@@ -2206,7 +2218,7 @@ button.zoom__tile:focus-visible .zoom__more {
     <p class="sheet__meta">2019–2020 · via Collabera</p>
     <h2 id="sheet-starbucks-title">Starbucks — Technical Product Manager, Retail Platform Engineering</h2>
     <ul>
-        <li>Launched the UberEats program to 5,496 stores across North America, adding $4.1M in revenue.</li>
+        <li>Aligned national release management across 6 different teams leading weekly business reviews.</li>
         <li>Reduced delivery support queues 95% by building the knowledge base and training.</li>
         <li>Cut critical Azure service issue resolution time 15% across two product lines.</li>
         <li>Reopened 500+ stores affected by the pandemic, standing up store delivery systems as BCDR.</li>
@@ -2223,7 +2235,7 @@ button.zoom__tile:focus-visible .zoom__more {
     <ul>
         <li>Ran the DevOps support program for all Azure Marketplace cloud products and apps.</li>
         <li>Reduced time to resolution 60% through root-cause analysis, documentation and lean implementation.</li>
-        <li>Supported 2,000+ Azure publishers and their customer experience end to end.</li>
+        <li>Plan data source strategies for publisher reporting and data security trade offs.</li>
         <li>Built Power BI and SQL Server reporting for 3 teams; drove data governance and KPIs.</li>
     </ul>
     <form method="dialog">
@@ -2238,8 +2250,8 @@ button.zoom__tile:focus-visible .zoom__more {
     <ul>
         <li>Validated co-op marketing initiatives across the global Microsoft Partner Network.</li>
         <li>Led a team of 6 managers and 16 processors across Windows, Xbox, MSN and Bing.</li>
-        <li>Reduced SLA 70%, setting new benchmarks, and streamlined year-over-year volume 20%.</li>
-        <li>Owned 2 core incentive programs, communicating with 60+ partners.</li>
+        <li>Gather requirements, develop operational processes, and implement KPIs across 8 programs.</li>
+        <li>Align strategic initiatives to stakeholders as SME with key metrics to support business growth.</li>
     </ul>
     <form method="dialog">
       <button class="sheet__close" type="submit">Close</button>
@@ -2252,7 +2264,7 @@ button.zoom__tile:focus-visible .zoom__more {
     <h2 id="sheet-illinois-title">Education / Certification</h2>
     <ul>
         <li>Bachelor of Science in Management; Bachelor of Science in Marketing.</li>
-        <li>Also certified: Microsoft Azure Fundamentals, and Salesforce Trailhead — Salesforce Developer.</li>
+        <li>Also certified: Microsoft Azure Fundamentals, Salesforce Trailhead — Salesforce Developer, and Code Fellows — Developer.</li>
     </ul>
     <form method="dialog">
       <button class="sheet__close" type="submit">Close</button>
