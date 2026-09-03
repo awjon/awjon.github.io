@@ -2879,9 +2879,20 @@ button.zoom__tile:focus-visible .zoom__more {
     var dlg = document.getElementById('sheet-' + btn.getAttribute('data-sheet'));
     if (!dlg) return;
 
+    // The panel's own scroll position isn't part of the dialog's open/closed
+    // state — closing it never resets scrollTop, so the node just remembers
+    // wherever a previous read left off. Scroll a case study down, close it,
+    // reopen it, and without this it reopens mid-scroll instead of on the
+    // title.
+    var panel = dlg.querySelector('.sheet__panel');
+
     btn.addEventListener('click', function () {
       lock();
+      // Setting scrollTop only takes while the panel has an actual layout box
+      // to scroll — before showModal() the dialog is still display:none, and
+      // the browser silently drops the assignment. So this has to come after.
       dlg.showModal();
+      if (panel) panel.scrollTop = 0;
     });
 
     // The dialog fills the viewport and centres its panel, so anything that
