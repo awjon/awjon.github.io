@@ -2399,12 +2399,43 @@ button.zoom__tile:focus-visible .zoom__more {
   <div class="sheet__panel">
     <p class="sheet__meta">Case study 03 · Microsoft Fast Track · 2020–2022</p>
     <h2 id="sheet-case-sixtyone-title">Automating a $61M business</h2>
+
+    <h3 class="sheet__section">The Situation / Challenge</h3>
+    <p class="sheet__body">FastTrack suddenly needed to stand up three new programs
+       simultaneously — each with different requirements, stakeholders, and engineering
+       dependencies. The existing process required building full production-grade Power Apps
+       forms, data fields, and security roles from scratch for every program — work that took
+       weeks per program. Teams across all 19 cross-functional groups were already
+       overwhelmed, and missing any of the launch dates would directly impact a $61M
+       incentive business.</p>
+
+    <h3 class="sheet__section">The Action / Solution</h3>
+    <p class="sheet__body">I designed and implemented a Quick-to-Market (QTM) methodology
+       that let us launch programs rapidly while still building toward long-term scalable
+       solutions:</p>
     <ul>
-        <li>Led DevOps and automation programs driving growth for a $61M incentive business.</li>
-        <li>Increased processing capacity 30% by launching 9 Power Apps and 30+ automation products across 3 portals.</li>
-        <li>Reduced lead times 53% with iterative releases and continuous discovery with leadership.</li>
-        <li>Integrated 19 cross-functional teams; architected 3 Azure Data Factory pipelines and 12 APIs.</li>
+        <li>Replaced production builds with lightweight Excel input forms that teams already knew how to use, so claims could be processed immediately — no learning curve, no waiting on UI development, no security-role definitions blocking progress.</li>
+        <li>Prioritized strategically by sequencing delivery by business impact and size, launching the smallest, lowest-risk program first to validate the QTM model and build team confidence before tackling the larger programs.</li>
+        <li>Created structured cross-team coordination through bi-weekly syncs called "wallows" to align all 19 teams, surface blockers early, and maintain shared visibility.</li>
+        <li>Partnered with the portal team to stand up a UAT environment so stakeholders could test the long-term production solution in parallel — running two tracks simultaneously instead of sequentially.</li>
+        <li>Absorbed minor launch issues (duplicate records, column name changes, messaging updates) without any impact to business operations, since the QTM Excel workflow kept claims processing running throughout.</li>
     </ul>
+
+    <h3 class="sheet__section">The Impact / Results</h3>
+    <p class="sheet__body">Cut lead times by 53% across the program. All three programs
+       launched on time with zero business disruption. QTM became the standardized release
+       methodology for future FastTrack programs going forward. End users were onboarded
+       immediately thanks to the Excel-based workflow — no learning curve, no transition
+       pain.</p>
+
+    <h3 class="sheet__section">The Key Takeaway</h3>
+    <p class="sheet__body">This proves I can invent a pragmatic, frugal solution under real
+       business pressure rather than defaulting to the "proper" but slower build — and that
+       speed and quality aren't actually in tension when the methodology is designed well.
+       It's a clear example of bias for action and customer obsession: choosing the tool the
+       team already trusted over the tool that looked more polished, because it got claims
+       processed on day one instead of week three.</p>
+
     <form method="dialog">
       <button class="sheet__close" type="submit">Close</button>
     </form>
@@ -2415,11 +2446,46 @@ button.zoom__tile:focus-visible .zoom__more {
   <div class="sheet__panel">
     <p class="sheet__meta">Case study 04 · Starbucks · 2019–2020</p>
     <h2 id="sheet-case-ubereats-title">UberEats to 5,496 stores</h2>
+
+    <h3 class="sheet__section">The Situation / Challenge</h3>
+    <p class="sheet__body">Starbucks partnered with UberEats to launch delivery across
+       5,496 stores, with a projected revenue impact of $4.1M. The technical integration was
+       inherently complex: UberEats wouldn't allow Starbucks to modify their APIs, so order
+       data had to flow reliably one-way into Starbucks' SPC devices through Uber's systems,
+       and Microsoft's cloud servers powering the integration were experiencing inconsistent
+       availability — with management initially declining a request to increase server
+       capacity. Then COVID hit. Thousands of stores closed overnight, and delivery instantly
+       became a critical, can't-go-down revenue channel.</p>
+
+    <h3 class="sheet__section">The Action / Solution</h3>
+    <p class="sheet__body">I took end-to-end ownership of the launch and its stabilization
+       through the pandemic:</p>
     <ul>
-        <li>Launched the UberEats program to 5,496 stores across North America, adding $4.1M in revenue.</li>
-        <li>Reduced delivery support queues 95% by building the knowledge base and training.</li>
-        <li>Reopened 500+ stores affected by the pandemic, standing up store delivery systems as BCDR.</li>
+        <li>Drove the technical integration by starting at 4 AM daily to align with UberEats engineers in New York during launch-day cutovers, ensuring SPC devices connected correctly to Uber's APIs, stores acknowledged the online service, and orders flowed without interruption.</li>
+        <li>Debugged menu logic and ordering edge cases — fixed unlimited pastry-bag ordering, removed Nitro drinks that couldn't survive transport and were hurting feedback scores, and implemented customization guardrails.</li>
+        <li>Stabilized the platform under unreliable cloud conditions by setting up live Splunk dashboards, keeping the Azure Portal open all day, and running server refreshes to minimize downtime — then built a data case using uptime and order-volume metrics that eventually earned approval for a regional failover server.</li>
+        <li>Built operational excellence by creating internal support documentation, becoming the Tier 3 escalation point, and gaining access to Uber's internal admin panel so the team could remotely fix menus, set hours, and edit items without waiting on Uber support.</li>
+        <li>Led pandemic operations by partnering with regional managers to create COVID-safe delivery workflows — contactless pickup, bagging standards, store-entry restrictions for drivers, and new ticket-handling procedures — keeping stores operational for delivery even while closed to the public.</li>
     </ul>
+
+    <h3 class="sheet__section">The Impact / Results</h3>
+    <p class="sheet__body">Launched delivery to 5,496 stores, generating $4.1M in net new
+       revenue. Maintained delivery capability for 500+ stores during COVID closures when it
+       mattered most. Delivery support queues dropped 95% once the knowledge base was built.
+       Downtime was reduced through proactive monitoring and the regional failover addition,
+       and the Starbucks–UberEats partnership was strengthened through consistent
+       communication and operational maturity.</p>
+
+    <h3 class="sheet__section">The Key Takeaway</h3>
+    <p class="sheet__body">This proves I can own a technically constrained, high-stakes
+       integration through both a planned launch and an unplanned crisis — showing customer
+       obsession (fixing menu issues that hurt real customer experience), think big (building
+       the data case for infrastructure investment rather than accepting "no"), and the
+       persistence to grind through 4 AM cutovers when the business needed it. When COVID
+       turned a delivery nice-to-have into a survival channel for 500+ closed stores, the
+       operational foundation I'd already built is what let the business pivot without
+       missing a beat.</p>
+
     <form method="dialog">
       <button class="sheet__close" type="submit">Close</button>
     </form>
