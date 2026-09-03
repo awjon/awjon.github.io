@@ -1805,6 +1805,17 @@ button.zoom__tile:focus-visible .zoom__more {
   content: "";
   position: absolute;
   inset: 0;
+  /* Without this, the wash paints in front of the title and links rather
+     than behind them: .finale is a flex container, its flex-item children
+     (title, links) are unpositioned and paint in the in-flow layer, but this
+     pseudo-element is itself position:absolute and — z-index:auto or not —
+     positioned boxes paint after unpositioned ones in the same stacking
+     context. The result was exactly backwards from the comment above: the
+     "light backdrop" sat on TOP of the very text it was meant to sit behind,
+     bleaching it toward white as its own opacity ramped up through --f. A
+     negative z-index drops it out of that layer entirely, behind both the
+     in-flow content and the stacking context's own background. */
+  z-index: -1;
   background: linear-gradient(to top, rgba(254, 254, 254, 0.94) 0%, rgba(254, 254, 254, 0.94) 32%, rgba(254, 254, 254, 0) 68%);
   opacity: clamp(0, calc((var(--f) - 0.55) / 0.25), 1);
 }
@@ -1864,10 +1875,17 @@ button.zoom__tile:focus-visible .zoom__more {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  /* Starts a little before the title's own wipe lands (0.979) and finishes
-     at the very end of the pin, so the two links settle in just as "together"
-     resolves rather than snapping in afterwards. */
-  opacity: clamp(0, calc((var(--f) - 0.88) / 0.12), 1);
+  /* Starts while the title's own wipe is still running and lands at 0.93 —
+     short of --f's own 1.0 ceiling on purpose. That ceiling is also the
+     literal end of the page's scroll range, which a fair number of browsers
+     never quite reach to the last decimal (rounded viewport heights, a
+     mobile address bar settling, elastic overscroll), so a fade that only
+     finished exactly at --f 1 could sit at a fraction short of it forever —
+     legible text and a barely-there border reading as a stuck, washed-out
+     hover rather than a settled button. Finishing at 0.93 instead spends the
+     last 7% of the pin at full opacity on every browser, native
+     animation-timeline or the scroll-listener fallback alike. */
+  opacity: clamp(0, calc((var(--f) - 0.85) / 0.08), 1);
 }
 
 /* 48px tall so both are comfortable thumb targets on a phone. */
@@ -2151,6 +2169,11 @@ button.zoom__tile:focus-visible .zoom__more {
            target="_blank" rel="noopener" aria-label="Open résumé PDF (opens in a new tab)">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M9 15h6"></path></svg>
           Résumé
+        </a>
+        <a class="finale__link" href="https://portfolio.automatewithjon.workers.dev/"
+           target="_blank" rel="noopener" aria-label="View portfolio (opens in a new tab)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path></svg>
+          Portfolio
         </a>
       </div>
     </div>
