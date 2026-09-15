@@ -874,7 +874,7 @@ body {
    And then leaving. It is the caption for an arrival, and the arrival is over
    by --v 0.25; holding it there would paste a static line across the whole
    remaining flight into the screen. So it fades in on --z as it always did,
-   holds while the frame settles, and is gone by --v 0.4 — with three fifths of
+   holds while the frame settles, and is gone by --v 0.6 — with two fifths of
    the footage still to run, unobstructed. */
 .zoom__focus {
   position: absolute;
@@ -887,7 +887,7 @@ body {
   color: #fff;
   pointer-events: none;
   opacity: calc(clamp(0, calc((var(--z) - 0.55) / 0.4), 1) *
-                (1 - clamp(0, calc((var(--v) - 0.28) / 0.12), 1)));
+                (1 - clamp(0, calc((var(--v) - 0.48) / 0.12), 1)));
 }
 
 .zoom__focus span {
